@@ -1,0 +1,164 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BES Loan Lite</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="https://bulma.io/vendor/fontawesome-free-6.5.2-web/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar is-dark">
+        <div class="navbar-brand">
+        <a class="navbar-item" href="index.html">
+            Dashboard
+        </a>
+            <a class="navbar-item" href="clients.html">
+            Clients
+        </a>
+            <a class="navbar-item is-active" href="loans.html">
+            Prêts
+        </a>
+            <a class="navbar-item is-active" href="payments.html">
+            Paiements
+        </a>
+          </div>
+        </div>
+      </nav>
+
+
+
+    <h1 class="title">Bienvenue dans le Dashboard</h1>
+
+    <h2 class="subtitle"> voici les vue densemble </h2>
+
+    <h2 class="subtitle">Le Dashboard est donc la page qui donne une vue globale de la situation financière de l'entreprise.</h2>
+
+    <div>
+    
+    <table class="table is-striped is-fullwidth">
+        <tr>
+            <th>•	Prêts Actifs</th>
+            <th>•	Prêts Remboursés</th>
+            <th>•	Prêts en Retard</th>
+            <th>•	montant total prêté</th>
+            <th>•	montant total remboursé</th>
+            <th>•	client en retard</th>
+        </tr>
+    </div>
+    <tbody>
+        <tr>
+            <td>10</td>
+            <td>5</td>
+            <td>2</td>
+            <td>10000€</td>
+            <td>5000€</td>
+            <td>John Doe (5 jours)</td>
+        </tr>
+    </tbody>
+    </table>
+    
+</body>
+</html>
+
+Accueil - Dashboard
+Lorsque vous ouvrez l'application, la première page est le Dashboard.
+C'est une vue d'ensemble qui montre :
+<br>
+<br>
+<br>
+<br>
+•	Le nombre de prêts actifs, remboursés et en retard.
+<br>
+•	Le montant total prêté par l'entreprise.
+<br>
+•	Le montant total déjà remboursé par les clients.
+<br>
+•	Une liste des clients en retard, avec le nombre de jours de retard.
+<br>
+•	Une pastille rouge dans le menu qui indique combien de prêts sont en retard.
+<br>
+<br>
+<br>
+
+Le Dashboard est donc la page qui donne une vue globale de la situation financière de l'entreprise.
+Accueil - Dashboard
+
+
+<!-- Clients 
+	<section id="view-clients" class="hidden">
+		<div class="box">
+			<h2 class="subtitle">Ajouter Client</h2>
+			<form id="formClient" class="fields">
+				<div class="field is-horizontal">
+					<div class="field-body">
+						<div class="field"><input class="input" name="first_name" placeholder="Prénom" required></div>
+						<div class="field"><input class="input" name="last_name" placeholder="Nom" required></div>
+						<div class="field"><input class="input" name="phone" placeholder="Téléphone"></div>
+						<div class="field"><input class="input" name="email" placeholder="Email"></div>
+						<div class="field"><input class="input" name="address" placeholder="Adresse"></div>
+					</div>
+				</div>
+				<button class="button is-primary is-small" type="submit">Enregistrer</button>
+			</form>
+		</div>
+		<div class="box">
+			<h2 class="subtitle">Liste Clients</h2>
+			<table class="table is-striped is-fullwidth">
+				<thead><tr><th>ID</th><th>Nom</th><th>Tél</th><th>Email</th><th>Prêts</th><th>Actions</th></tr></thead>
+				<tbody id="clientsTable"></tbody>
+			</table>
+		</div>
+	</section>
+
+	 Loans --><!-- 
+	<section id="view-loans" class="hidden">
+		<div class="box">
+			<h2 class="subtitle">Créer Prêt</h2>
+			<form id="formLoan">
+				<div class="field">
+					<div class="select is-small">
+						<select name="client_id" id="loanClientSelect" required></select>
+					</div>
+				</div>
+				<div class="field"><input class="input" name="amount" type="number" step="0.01" placeholder="Montant" required></div>
+				<div class="field"><input class="input" name="annual_rate" type="number" step="0.01" placeholder="Taux annuel (ex: 0.12)" required></div>
+				<div class="field"><input class="input" name="duration_months" type="number" placeholder="Durée (mois)" required></div>
+				<div class="field"><input class="input" name="start_date" type="date" required></div>
+				<button class="button is-primary is-small" type="submit">Créer</button>
+			</form>
+		</div>
+		<div class="box">
+			<h2 class="subtitle">Liste Prêts</h2>
+			<table class="table is-striped is-fullwidth">
+				<thead><tr><th>ID</th><th>Client</th><th>Montant</th><th>Intérêts</th><th>Solde</th><th>Statut</th></tr></thead>
+				<tbody id="loansTable"></tbody>
+			</table>
+		</div>
+	</section>
+
+	 Payments --><!-- 
+	<section id="view-payments" class="hidden">
+		<div class="box">
+			<h2 class="subtitle">Enregistrer Paiement</h2>
+			<form id="formPayment">
+				<div class="field">
+					<div class="select is-small">
+						<select name="loan_id" id="paymentLoanSelect" required></select>
+					</div>
+				</div>
+				<div class="field"><input class="input" name="amount" type="number" step="0.01" placeholder="Montant" required></div>
+				<div class="field"><input class="input" name="pay_date" type="date" required></div>
+				<div class="field"><input class="input" name="mode" placeholder="Mode (cash...)" ></div>
+				<div class="field"><input class="input" name="note" placeholder="Note" ></div>
+				<button class="button is-primary is-small" type="submit">Ajouter</button>
+			</form>
+		</div>
+		<div class="box">
+			<h2 class="subtitle">Historique Paiements</h2>
+			<table class="table is-striped is-fullwidth">
+				<thead><tr><th>ID</th><th>Prêt</th><th>Montant</th><th>Date</th><th>Mode</th></tr></thead>
+				<tbody id="paymentsTable"></tbody>
+			</table>
+		</div>
+	</section>
+	<div id="msg" class="notification is-hidden"></div>-->

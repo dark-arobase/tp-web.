@@ -1,0 +1,155 @@
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BES Loan Lite-client</title>
+    <link rel="icon" type="image/x-icon" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+</head>
+<body>
+      <nav class="navbar is-dark">
+        <div class="navbar-brand">
+          <a class="navbar-item" href="client.html">
+            BES Loan Lite
+          </a>
+        </div>
+        <div class="navbar-menu">
+          <div class="navbar-start">
+            <a class="navbar-item is-active" href="client.html">Clients</a>
+          </div>
+        </div>
+      </nav>
+    
+
+    
+    
+    <section class="section">
+        <div class="container">
+      <h1 class="title">Gestion des clients</h1>
+
+        <h2 class="subtitle">Ajouter un nouveau client</h2>
+        
+        
+        <div class="box">
+        <form id="client-form">
+        <input type="hidden" id="client-id">
+
+        <div class="columns">
+            <div class="column">      
+                <div class="field">
+                    <label class="label" for ="nom">Nom:</label>
+                    <div class="control">
+                    <input class="input" type="text" id="nom" name="nom" required>
+                    <div class="help is-danger" id="nom-error" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+            <div class="column">
+                <div class="field">
+                    <label class="label" for ="prenom">Prénom:</label>
+                    <div class="control">
+                    <input class="input" type="text" id="prenom" name="prenom" required>
+                    <div class="help is-danger" id="prenom-error" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <div class="columns">
+            <div class="column">
+                <div class="field">
+                    <label class="label" for ="telephone">Téléphone:</label>
+                    <div class="control">
+                        <input class="input" type="text" id="telephone" name="telephone" required>
+                        <div class="help is-danger" id="telephone-error" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="field">
+                    <label class="label" for ="email">Email:</label>
+                    <div class="control">
+                        <input class="input" type="email" id="email" name="email" required>
+                        <div class="help is-danger" id="email-error" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="field">
+        <label class="label" for ="adresse">Adresse:</label>
+        <input class="input" type="text" id="adresse" name="adresse" required>
+        <div class="help is-danger" id="adresse-error" style="display:none;"></div>
+        </div>
+        <div class="field is-grouped">
+        
+            <div class="control">
+              <button class="button is-primary" type="submit" id="submit-btn">
+                Ajouter le client
+              </button>
+            </div>
+            <div class="control">
+              <button class="button is-danger" type="button" id="cancel-edit" >
+                Annuler
+              </button>
+            </div>
+          </div>
+    </form>
+    
+    <!-- message de succes -->
+    <div class="notification is-success" id="success-message" style="display: none;">
+      Client ajouté avec succès !
+    </div>
+    <!-- message d'erreur -->
+    <div class="notification is-danger" id="error-message" style="display: none;">
+      Une erreur est survenue. Veuillez réessayer.
+    </div>
+</div>
+    <br>
+    <h2 class="subtitle">Liste des clients deja enregistrés</h2>
+    <!---<div class="field">
+  <p class="control has-icons-left">
+    <input id="search" class="input" type="text" placeholder="Recherche...">
+    <span class="icon is-left">
+      <i class="fas fa-search"></i>
+    </span>
+  </p> -->
+
+    <table class="table is-fullwidth is-striped" id="clients-table">
+      <thead>
+        <tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Prénom</th>
+        <th>Téléphone</th>
+        <th>Email</th>
+        <th>Adresse</th>
+        <th>Prêt</th>
+        <th>Actions</th> <!-- jsp pour action-->
+     </tr>
+      </thead>
+      <tbody>
+        <!-- Les lignes de la table seront ajoutées ici dynamiquement -->
+      </tbody>
+    </table>
+    </section>
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+
+<!--
+<h2>Modifier ou supprimer un client</h2>
+    plus tard tkt :)
+
+    <p>Vous pouvez rechercher un client par nom, trier les colonnes ou naviguer dans les pages si la liste est longue.</p>
+
+Gestion des Clients
+Dans le menu, vous trouverez la section Clients.
+•	Ici, vous pouvez ajouter un nouveau client en remplissant un formulaire Bulma (nom, prénom, téléphone, email, adresse). ((x
+•	Une table Bulma liste tous les clients déjà enregistrés. (((x)
+•	Vous pouvez modifier ou supprimer un client.
+•	Grâce à JavaScript (DOM), vous pouvez rechercher un client par nom, trier les colonnes ou 
+naviguer dans les pages si la liste est longue.
+Les clients sont la base : il faut toujours créer un client avant de lui attribuer un prêt.
+-->
