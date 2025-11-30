@@ -1,8 +1,17 @@
 const express = require('express')
 const path = require('path')
-const crypto = require('crypto')
+
 
 const {db, createTable} = require('./db')
+
+
+// import des routes
+const clientsRoutes = require('./api/gestionClients.js')
+
+const loansRoutes = require('./api/gestionLoans.js')
+
+const paiementsRoutes = require('./api/gestionPaiements');
+
 
 const app = express()
 
@@ -14,38 +23,14 @@ app.get('/', (req, res)=>{
   res.sendFile(path.join(__dirname, "../public", "index.html"));
 })
 
-/* =========================
-   ROUTE : AJOUT CLIENT
-   ========================= */
-app.post('/api/clients', async (req, res) => {
-    try {
-        const { nom, prenom, telephone, email, adresse } = req.body;
 
-        const id = crypto.randomUUID();
+app.use('/', clientsRoutes);
 
-        await db('clients').insert({
-            id, nom, prenom, telephone, email, adresse
-        });
+app.use('/', loansRoutes);
 
-        res.json({ success: true, id });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, error: 'Erreur serveur' });
-    }
-});
+app.use('/', paiementsRoutes);
 
-/* =========================
-   ROUTE : LISTE CLIENTS
-   ========================= */
-app.get('/api/clients', async (req, res) => {
-    try {
-        const clients = await db('clients').select('*');
-        res.json(clients);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Erreur serveur' });
-    }
-});
+//app.use('/',
 
 createTable()
 .then(()=>{

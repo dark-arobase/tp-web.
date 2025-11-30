@@ -1,0 +1,70 @@
+#############
+curl -X POST http://localhost:3000/addClient \
+     -H "Content-Type: application/json" \
+     -d '{  
+           "nom": "Doe",
+           "prenom": "John",
+           "telephone": "1234567890",
+           "email": "john.doe@example.com",
+           "adresse": "123 Main St"
+         }'
+#############
+curl -X GET  http://localhost:3000/allclients
+############
+curl -X GET  http://localhost:3000/client/010840e8-272a-4144-bcc9-8610a82129fd
+#############
+curl -X DELETE http://localhost:3000/deleteClient/010840e8-272a-4144-bcc9-8610a82129fd
+#############
+curl -X PUT http://localhost:3000/updateClient/010840e8-272a-4144-bcc9-8610a82129fd \
+     -H "Content-Type: application/json" \
+     -d '{  
+           "nom": "Smith",
+           "prenom": "Jane",
+           "telephone": "0987654321",
+           "email": "jane.smith@example.com",
+           "adresse": "456 Elm St"
+            }'
+#############
+curl -X GET  http://localhost:3000/addloans
+      -H "Content-Type: application/json" \
+      -d '{
+            "clientId": "010840e8-272a-4144-bcc9-8610a82129fd",
+            "amount": 5000,
+            "interestRate": 5.5,
+            "termMonths": 24
+          }'
+#############
+curl -X GET  http://localhost:3000/allloans
+#############
+curl -X GET  http://localhost:3000/loan/{loanId}
+#############
+curl -X DELETE http://localhost:3000/deleteloan/{loanId}
+#############
+curl -X PUT http://localhost:3000/updateloan/{loanId} \
+      -H "Content-Type: application/json" \
+      -d '{
+             "amount": 6000,
+             "interestRate": 6.0,
+             "termMonths": 30
+          }'
+#############
+curl -X POST http://localhost:3000/addpayment \
+      -H "Content-Type: application/json" \
+      -d '{
+            "loanId": "{loanId}",
+            "paymentDate": "2024-10-01",
+            "amount": 250
+          }'
+#############
+curl -X GET  http://localhost:3000/allpayments
+#############
+curl -X GET  http://localhost:3000/payment/{paymentId}
+#############
+curl -X DELETE http://localhost:3000/deletepayment/{paymentId}
+#############
+curl -X PUT http://localhost:3000/updatepayment/{paymentId} \
+      -H "Content-Type: application/json" \
+      -d '{
+            "paymentDate": "2024-11-01",
+            "amount": 300
+          }'
