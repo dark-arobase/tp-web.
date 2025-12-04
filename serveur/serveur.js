@@ -1,4 +1,4 @@
-const express = require('express');
+/*const express = require('express');
 const path = require('path');
 const knexConfig = require('../knexfile').development;
 const knex = require('knex')(knexConfig);
@@ -17,6 +17,10 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 // routes API
 app.use('/api/clients', clientsRoutes);
 
-app.listen(PORT, () => {
-  console.log(`BES Loan Lite running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`BES Loan Lite running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;*/

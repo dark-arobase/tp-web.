@@ -1,189 +1,176 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BES Loan Lite - Paiements</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
-
-  <style>
-    /* Agrandir la navbar et centrer les liens */
-    .navbar { padding: 1rem 2rem; font-size: 1.3rem; }
-    .navbar-menu { justify-content: center; }
-    .navbar-item { padding: 1rem 1.5rem; }
-    .title, .subtitle { text-align: center; margin-top: 20px; }
-    .dashboard-table { margin-top: 30px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BES Loan Lite – Paiements</title>
+    <link rel="icon" type="image/png" href="https://bulma.io/images/bulma-logo.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- NAVBAR -->
-  <nav class="navbar is-dark">
-    <div class="navbar-brand">
-      <a class="navbar-item" href="index.html">BES Loan Lite</a>
-      <a role="button" class="navbar-burger" data-target="menu" aria-label="menu" aria-expanded="false">
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-      </a>
-    </div>
+
+<!-- NAVBAR -->
+<nav class="navbar is-dark">
     <div id="menu" class="navbar-menu">
-      <div class="navbar-start">
-        <a class="navbar-item" href="index.html">Dashboard</a>
-        <a class="navbar-item" href="prets.html">Prêts</a>
-        <a class="navbar-item is-active" href="paiements.html">Paiements</a>
-        <a class="navbar-item" href="client.html">Client</a>
-      </div>
+        <div class="navbar-start">
+            <a class="navbar-item" href="index.html">Dashboard</a>
+            <a class="navbar-item" href="loans.html">Prêts</a>
+            <a class="navbar-item" href="paiements.html">Paiements</a>
+            <a class="navbar-item" href="client.html">Client</a>
+        </div>
+
+        <div class="navbar-end">
+            <div class="navbar-item">
+                <button class="button is-light" onclick="logout()">Déconnexion</button>
+            </div>
+        </div>
     </div>
-  </nav>
+</nav>
 
-  <section class="section">
-    <div class="container">
-      <h1 class="title">Gestion des paiements</h1>
-      <h2 class="subtitle">Enregistrer un paiement</h2>
+<section class="section">
+<div class="container">
 
-      <div class="box">
-        <form id="payment-form">
-          <input type="hidden" id="payment-id">
+    <h1 class="title">Gestion des paiements</h1>
+    <h2 class="subtitle">Ajouter un nouveau paiement</h2>
 
-          <div class="columns">
-            <div class="column">
-              <div class="field">
-                <label class="label">ID du prêt</label>
-                <div class="control">
-                  <input id="loan-id" class="input" type="text" placeholder="ID du prêt" required>
+    <div class="box">
+        <form id="paiement-form">
+            <input type="hidden" id="payment-id">
+
+            <!-- FORMULAIRE -->
+            <div class="columns">
+                
+                <!-- Prêt -->
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Prêt concerné</label>
+                        <div class="control has-icons-left">
+                            <div class="select is-fullwidth">
+                                <select id="pretSelect" required>
+                                    <option value="">Sélectionnez un prêt</option>
+                                </select>
+                            </div>
+                            <span class="icon is-left"><i class="fas fa-file-invoice-dollar"></i></span>
+                        </div>
+                        <p class="help is-danger" id="pret-error" style="display:none;"></p>
+                    </div>
                 </div>
-              </div>
+
+                <!-- Montant -->
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Montant ($ CAD)</label>
+                        <div class="control has-icons-left">
+                            <input class="input" type="number" id="montant" placeholder="Ex : 250" required>
+                            <span class="icon is-left"><i class="fas fa-dollar-sign"></i></span>
+                        </div>
+                        <p class="help is-danger" id="montant-error" style="display:none;"></p>
+                    </div>
+                </div>
+
+                <!-- Date -->
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Date de paiement</label>
+                        <div class="control has-icons-left">
+                            <input class="input" type="date" id="date" required>
+                            <span class="icon is-left"><i class="fas fa-calendar-alt"></i></span>
+                        </div>
+                        <p class="help is-danger" id="date-error" style="display:none;"></p>
+                    </div>
+                </div>
             </div>
 
+            <div class="columns">
+            <!-- Mode de paiement -->
             <div class="column">
-              <div class="field">
-                <label class="label">Montant</label>
-                <div class="control">
-                  <input id="montant" class="input" type="number" step="0.01" placeholder="Montant" required>
+                <div class="field">
+                <label class="label">Mode de paiement</label>
+                <div class="control has-icons-left">
+                    <div class="select is-fullwidth">
+                    <select id="mode" required>
+                        <option value="">Sélectionner</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Virement">Virement</option>
+                        <option value="Carte">Carte bancaire</option>
+                        <option value="Chèque">Chèque</option>
+                        <option value="Mobile">Paiement mobile</option>
+                    </select>
+                    </div>
+                    <span class="icon is-left"><i class="fas fa-hand-holding-dollar"></i></span>
                 </div>
-              </div>
+                <p class="help is-danger" id="mode-error" style="display:none;"></p>
+                </div>
             </div>
 
+            <!-- Note -->
             <div class="column">
-              <div class="field">
-                <label class="label">Date</label>
-                <div class="control">
-                  <input id="date" class="input" type="date" required>
+                <div class="field">
+                <label class="label">Note (optionnel)</label>
+                <div class="control has-icons-left">
+                    <input class="input" type="text" id="note" placeholder="Ex : Paiement partiel">
+                    <span class="icon is-left"><i class="fas fa-sticky-note"></i></span>
                 </div>
-              </div>
+                </div>
             </div>
-          </div>
-
-          <div class="columns">
-            <div class="column">
-              <div class="field">
-                <label class="label">Mode</label>
-                <div class="control">
-                  <input id="mode" class="input" type="text" placeholder="Cash, Virement...">
-                </div>
-              </div>
             </div>
 
-            <div class="column">
-              <div class="field">
-                <label class="label">Note</label>
+            <!-- BOUTONS -->
+            <div class="field is-grouped">
                 <div class="control">
-                  <input id="note" class="input" type="text" placeholder="Note (optionnel)">
+                    <button class="button is-primary" id="submit-btn" type="submit">Ajouter paiement</button>
                 </div>
-              </div>
+                <div class="control">
+                    <button class="button is-danger" id="cancel-edit" type="button" style="display:none;">Annuler</button>
+                </div>
             </div>
-          </div>
-
-          <div class="field is-grouped">
-            <div class="control"><button class="button is-primary" id="submit-payment" type="submit">Ajouter</button></div>
-            <div class="control"><button class="button is-danger" type="button" id="cancel-payment">Annuler</button></div>
-          </div>
-
-          <div id="payment-success" class="notification is-success" style="display:none">Paiement enregistré</div>
-          <div id="payment-error" class="notification is-danger" style="display:none">Erreur</div>
+        
         </form>
-      </div>
 
-      <div class="box">
-        <h2 class="subtitle">Liste des paiements</h2>
-        <table class="table is-fullwidth is-striped" id="payments-table">
-          <thead>
+        <!-- Notifications -->
+        <div class="notification is-success" id="success-message" style="display:none;">
+            Paiement enregistré avec succès !
+        </div>
+        <div class="notification is-danger" id="error-message" style="display:none;">
+            Une erreur est survenue. Veuillez réessayer.
+        </div>
+
+    </div>
+
+    <h2 class="subtitle">Historique des paiements</h2>
+
+    <table class="table is-fullwidth" id="payments-table">
+        <thead>
             <tr>
-              <th>ID</th>
-              <th>ID Prêt</th>
-              <th>Montant</th>
-              <th>Date</th>
-              <th>Mode</th>
-              <th>Note</th>
-              <th>Actions</th>
+                <th>Prêt client</th>
+                <th>Montant</th>
+                <th>Date</th>
+                <th>Mode</th>
+                <th>Note</th>
+                <th>Actions</th>
             </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+        </thead>
+        <tbody></tbody>
+    </table>
 
-    </div>
-  </section>
+</div>
+</section>
 
-  <footer class="footer">
-    <div class="content has-text-centered">
-      <p><strong>BES Loan Lite</strong> — Microcrédit interne © 2025</p>
-    </div>
-  </footer>
+<script src="paiements.js"></script>
 
-  <script>
-    // JS simple: add/get/delete payments (à connecter au backend)
-    async function loadPayments(){
-      try{
-        const res = await fetch('/api/paiements')
-        const list = await res.json()
-        const tbody = document.querySelector('#payments-table tbody')
-        tbody.innerHTML = ''
-        list.forEach(p=>{
-          const tr = document.createElement('tr')
-          tr.innerHTML = `
-            <td>${p.id}</td>
-            <td>${p.loanId}</td>
-            <td>${p.montant}</td>
-            <td>${p.date}</td>
-            <td>${p.mode}</td>
-            <td>${p.note||''}</td>
-            <td>
-              <button class="button is-small is-danger" onclick="deletePayment('${p.id}')">Supprimer</button>
-            </td>
-          `
-          tbody.appendChild(tr)
-        })
-      }catch(err){ console.error(err) }
-    }
-
-    document.getElementById('payment-form').addEventListener('submit', async (e)=>{
-      e.preventDefault()
-      const data = {
-        loanId: document.getElementById('loan-id').value,
-        montant: parseFloat(document.getElementById('montant').value),
-        date: document.getElementById('date').value,
-        mode: document.getElementById('mode').value,
-        note: document.getElementById('note').value
-      }
-      try{
-        const res = await fetch('/api/paiements', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) })
-        const out = await res.json()
-        if(out.success){ document.getElementById('payment-success').style.display='block'; loadPayments(); setTimeout(()=>{document.getElementById('payment-success').style.display='none'},2500) } else document.getElementById('payment-error').style.display='block'
-      }catch(err){ console.error(err); document.getElementById('payment-error').style.display='block' }
-    })
-
-    async function deletePayment(id){
-      if(!confirm('Supprimer ce paiement ?')) return
-      try{
-        const res = await fetch(`/api/paiements/${id}`, { method:'DELETE' })
-        const out = await res.json()
-        if(out.success) loadPayments()
-        else alert('Erreur')
-      }catch(err){ console.error(err) }
-    }
-
-    loadPayments()
-  </script>
 </body>
 </html>
+
+
+<!-- 
+Gestion des Paiements
+Pour enregistrer qu’un client a payé une partie de son prêt, vous allez dans la section Paiements.
+•	Vous choisissez le prêt concerné dans un menu déroulant.
+•	Vous saisissez le montant payé, la date, le mode (cash, virement, etc.) et une note éventuelle.
+•	Quand vous validez, le paiement est enregistré dans la base de données.
+•	Le solde du prêt est recalculé automatiquement et le statut peut changer (par exemple, de ACTIF à REMBOURSÉ).
+•	La table des paiements vous permet de voir tout l’historique des transactions.
+Chaque paiement modifie directement le tableau des prêts et le dashboard.
+ -->

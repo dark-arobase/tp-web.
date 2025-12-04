@@ -1,33 +1,24 @@
 const express = require('express')
 const path = require('path')
-
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 
 const {db, createTable} = require('./db')
 
 
-
-const { db, createTable } = require('./db')
-
 const app = express()
-
-app.get('/', (req, res)=>{
-  res.sendFile(path.join(__dirname, "../public", "login.html"));
-})
 
 // import des routes
 const clientsRoutes = require('./api/gestionClients.js')
+
 const loansRoutes = require('./api/gestionLoans.js')
+
 const paiementsRoutes = require('./api/gestionPaiements');
 
 const UserRoutes = require('./api/users.js')
 
-const app = express()
-
 app.use(express.json())
 
-// dossier public
 app.use(express.static(path.join(__dirname, '../public')))
 
 app.use(cookieParser());
@@ -38,15 +29,6 @@ app.use(session({
   cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day
 }));
 
-// page d'accueil
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, "../public", "index.html"));
-})
-
-// utiliser les routes importées
-app.use('/', clientsRoutes)
-app.use('/', loansRoutes)
-app.use('/', paiementsRoutes)
 
 
 app.use('/', clientsRoutes);
@@ -77,16 +59,3 @@ createTable()
    console.error("Erreur au demarrage du schema", err);
    process.exit(1);
 })
-
-// Démarrage serveur
-createTable()
-    .then(() => {
-        app.listen(3000, () => {
-            console.log("Serveur en cours d'exécution sur le port 3000")
-        });
-    })
-    .catch((err) => {
-        console.error("Erreur au démarrage du schema", err);
-        process.exit(1);
-    })
-
