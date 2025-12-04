@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BES Loan</title>
+    <link rel="icon" type="image/png" href="https://bulma.io/images/bulma-logo.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+
+</head>
+<body>
+<section class="section"  style="display:flex; justify-content:center; align-items:center; min-height:75vh;">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-5-tablet is-4-desktop">
+        <div class="box">
+          <h2 class="title is-4 has-text-centered">BES Loan</h2>
+          <h3 class="subtitle is-6 has-text-centered">Inscription</h3>
+
+          <form id="inscription-Form">
+            <input type="hidden" id="uId">
+
+            <div class="field">
+              <label class="label">Nom d'utilisateur</label>
+              <div class="control has-icons-left">
+                <input class="input" type="text" id="username" placeholder="Nom d'utilisateur" required>
+                <span class="icon is-left"><i class="fas fa-user"></i></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Mot de passe</label>
+              <div class="control has-icons-left">
+                <input class="input" type="password" id="password" placeholder="Mot de passe" required>
+                <span class="icon is-left"><i class="fas fa-lock"></i></span>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="control">
+                <button class="button is-primary is-fullwidth" id="submitBtn" type="submit">S'inscrire</button>
+              </div>
+            </div>
+
+            <p class="has-text-centered">Déjà un compte ? <a href="login.html">Connectez-vous</a></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="user.js"></script>
+</body>
+</html>

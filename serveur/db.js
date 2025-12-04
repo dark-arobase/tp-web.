@@ -12,6 +12,20 @@ const db = knex({
 /// Créer la table si elle n'existe pas a voir pour plus tard lol
 
 async function createTable(){
+    
+    const existsUser = await db.schema.hasTable("User");
+    if(!existsUser){
+       await db.schema.createTable("User", (table)=>{
+             table.string("id").primary();
+             table.string("username").notNullable();
+             table.string("password").notNullable();
+             table.timestamp("created_at").defaultTo(db.fn.now());
+       });
+       console.log("Table 'User' creee..");
+
+    }
+    
+    
     const hasClients = await db.schema.hasTable("clients");
     if(!hasClients){
      await db.schema.createTable("clients", (table)=>{

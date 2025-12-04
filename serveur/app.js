@@ -1,9 +1,16 @@
 const express = require('express')
 const path = require('path')
-
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
 
 const {db, createTable} = require('./db')
 
+
+const app = express()
+
+app.get('/', (req, res)=>{
+  res.sendFile(path.join(__dirname, "../public", "login.html"));
+})
 
 // import des routes
 const clientsRoutes = require('./api/gestionClients.js')
@@ -12,16 +19,20 @@ const loansRoutes = require('./api/gestionLoans.js')
 
 const paiementsRoutes = require('./api/gestionPaiements');
 
-
-const app = express()
+const UserRoutes = require('./api/users.js')
 
 app.use(express.json())
 
 app.use(express.static(path.join(__dirname, '../public')))
 
-app.get('/', (req, res)=>{
-  res.sendFile(path.join(__dirname, "../public", "index.html"));
-})
+app.use(cookieParser());
+app.use(session({
+  secret: 'change_this_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day
+}));
+
 
 
 app.use('/', clientsRoutes);
@@ -30,12 +41,22 @@ app.use('/', loansRoutes);
 
 app.use('/', paiementsRoutes);
 
+app.use('/', UserRoutes)
+
+app.post('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) return res.status(500).json({ error: 'Impossible de se déconnecter' });
+    res.clearCookie('connect.sid');
+    res.json({ message: 'Déconnecté' });
+  });
+});
+
 //app.use('/',
 
 createTable()
 .then(()=>{
    app.listen(3000, ()=>{
-    console.log("Serveur en cours d'execution sur le port 3000")
+    console.log("Serveur en cours d'execution sur le port 3000");
 });
 })
 .catch((err)=>{

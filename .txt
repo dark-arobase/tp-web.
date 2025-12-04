@@ -1,0 +1,4 @@
+cd Serveur
+npm install express
+npm install knex sqlite3
+node app.js

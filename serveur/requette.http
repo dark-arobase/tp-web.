@@ -9,6 +9,8 @@ curl -X POST http://localhost:3000/addClient \
            "adresse": "123 Main St"
          }'
 #############
+
+############
 curl -X GET  http://localhost:3000/allclients
 ############
 curl -X GET  http://localhost:3000/client/010840e8-272a-4144-bcc9-8610a82129fd
@@ -67,4 +69,13 @@ curl -X PUT http://localhost:3000/updatepayment/{paymentId} \
       -d '{
             "paymentDate": "2024-11-01",
             "amount": 300
+          }'
+#############
+curl -X GET  http://localhost:3000/addLoansToClient \
+      -H "Content-Type: application/json" \
+      -d '{
+            "clientId": "010840e8-272a-4144-bcc9-8610a82129fd",
+            "amount": 5000,
+            "interestRate": 5.5,
+            "termMonths": 24
           }'

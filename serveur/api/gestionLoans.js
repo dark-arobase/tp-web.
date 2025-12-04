@@ -32,11 +32,16 @@ router.post("/addLoan", async (req, res) => {
         const { client_id, montant, taux, duree, date } = req.body;
 
         // VALIDATION
-        if (!client_id) return res.status(400).json({ error: "client_id requis" });
-        if (!montant) return res.status(400).json({ error: "montant requis" });
-        if (!taux) return res.status(400).json({ error: "taux requis" });
-        if (!duree) return res.status(400).json({ error: "duree requise" });
-        if (!date) return res.status(400).json({ error: "date requise" });
+        if (!client_id) 
+            return res.status(400).json({ error: "client_id requis" });
+        if (!montant) 
+            return res.status(400).json({ error: "montant requis" });
+        if (!taux) 
+            return res.status(400).json({ error: "taux requis" });
+        if (!duree) 
+            return res.status(400).json({ error: "duree requise" });
+        if (!date) 
+            return res.status(400).json({ error: "date requise" });
 
         // CALCUL
         const interets = (montant * (taux / 100) * (duree / 12)).toFixed(2);

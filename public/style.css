@@ -1,0 +1,50 @@
+/* NAVBAR */
+.navbar {
+    padding: 1rem;
+}
+
+/* TITRES */
+.title, .subtitle {
+    text-align: center;
+}
+
+/* BOXES */
+.box {
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+/* FORM INPUTS */
+.input {
+    height: 2.3rem;
+}
+
+/* TABLE */
+#clients-table th, 
+#clients-table td {
+    padding: 0.7rem;
+}
+
+#clients-table tbody tr:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* PAGINATION */
+#client-pagination .button {
+    margin: 0 0.2rem;
+}
+
+/* NOTIFICATIONS */
+.notification {
+    border-radius: 6px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    #clients-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+

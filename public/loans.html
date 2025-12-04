@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BES Loan - Prêts</title>
+    <link rel="icon" type="image/png" href="https://bulma.io/images/bulma-logo.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar is-dark" role="navigation" aria-label="main navigation">
+    <div class="navbar-menu is-active">
+        <div class="navbar-start">
+            <a class="navbar-item" href="index.html">Dashboard</a>
+            <a class="navbar-item" href="loans.html" aria-current="page">Prêts</a>
+            <a class="navbar-item" href="paiements.html">Paiements</a>
+            <a class="navbar-item" href="client.html">Client</a>
+        </div>
+        <div class="navbar-end">
+            <div class="navbar-item">
+                <button class="button is-light">Déconnexion</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<section class="section">
+<div class="container">
+
+    <h1 class="title">Gestion des prêts</h1>
+    <h2 class="subtitle">Créer un nouveau prêt</h2>
+
+    <div class="box">
+        <form id="loan-form">
+            <input type="hidden" id="loan-id">
+
+            <div class="columns">
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Client</label>
+                        <div class="control has-icons-left">
+                            <div class="select is-fullwidth">
+                                <select id="clientSelect" required>
+                                    <option value="">Sélectionnez un client</option>
+                                </select>
+                            </div>
+                            <span class="icon is-left"><i class="fas fa-user"></i></span>
+                        </div>
+                        <p class="help is-danger" id="client-error" style="display:none;"></p>
+                    </div>
+                </div>
+
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Montant ($ CAD)</label>
+                        <div class="control has-icons-left">
+                            <input class="input" type="number" id="montant" placeholder="Ex : 10000" required>
+                            <span class="icon is-left"><i class="fas fa-dollar-sign"></i></span>
+                        </div>
+                        <p class="help is-danger" id="montant-error" style="display:none;"></p>
+                    </div>
+                </div>
+
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Taux mensuel (%)</label>
+                        <div class="control has-icons-left">
+                            <input class="input" type="number" id="taux" placeholder="Ex : 5" required>
+                            <span class="icon is-left"><i class="fas fa-percentage"></i></span>
+                        </div>
+                        <p class="help is-danger" id="taux-error" style="display:none;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="columns">
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Durée (mois)</label>
+                        <div class="control has-icons-left">
+                            <input class="input" type="number" id="duree" placeholder="Ex : 12" required>
+                            <span class="icon is-left"><i class="fas fa-clock"></i></span>
+                        </div>
+                        <p class="help is-danger" id="duree-error" style="display:none;"></p>
+                    </div>
+                </div>
+
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Date de début</label>
+                        <div class="control has-icons-left">
+                            <input class="input" type="date" id="date" required>
+                            <span class="icon is-left"><i class="fas fa-calendar-alt"></i></span>
+
+                            <span class="icon is-left"><i class="fas fa-calendar-alt"></i></span>
+                        </div>
+                        <p class="help is-danger" id="date-error" style="display:none;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boutons -->
+            <div class="field is-grouped">
+                <div class="control">
+                    <button class="button is-primary" id="submit-btn" type="submit">Créer le prêt</button>
+                    <button class="button is-danger" id="cancel-edit" type="button" style="display: none;" >Annuler</button>
+                </div>
+            </div>
+
+       
+
+        <!-- Notifications -->
+        <div class="field is-grouped">
+            <div class="notification is-success" id="success-message" style="display:none;">
+                Prêt créé avec succès !
+            </div>
+            <div class="notification is-danger" id="error-message" style="display:none;">
+                Une erreur est survenue. Veuillez réessayer.
+            </div>
+        </div>
+    </div>
+    </form>
+    <!--- <div id="loan-success" class="notification is-success" style="display:none">Prêt enregistré avec succès</div>
+    <div id="loan-error" class="notification is-danger" style="display:none">Erreur lors de l'enregistrement</div>-->
+    <h2 class="subtitle">Liste des prêts</h2>
+
+    <div class="box">
+        <!-- Filtres -->
+        <div class="columns">
+            <div class="column">
+                <label class="label">Statut</label>
+                <div class="select is-fullwidth">
+                    <select id="filter-status">
+                        <option value="">Tous</option>
+                        <option value="Actif">Actif</option>
+                        <option value="Remboursé">Remboursé</option>
+                        <option value="EnRetard">En retard</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="column">
+                <label class="label">Client</label>
+                <div class="select is-fullwidth">
+                    <select id="filter-client">
+                        <option value="">Tous les clients</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="column">
+                <label class="label">Recherche</label>
+                <input class="input" id="search-loan" type="text" placeholder="Nom, ID...">
+            </div>
+        </div>
+
+        <!-- Tableau -->
+        <table class="table is-fullwidth is-striped" id="loans-table">
+            <thead>
+                <tr>                    
+                    <th>Client</th>
+                    <th>Montant</th>
+                    <th>Taux (%)</th>
+                    <th>Durée (mois)</th>
+                    <th>Date début</th>
+                    <th>Intérêts cumulés</th>
+                    <th>Solde</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- Pagination -->
+        <nav class="pagination is-centered">
+            <div id="pagination" class="buttons"></div>
+        </nav>
+
+    </div>
+
+</div>
+</section>
+
+<script src="loans.js"></script>
+
+<footer class="footer">
+    <div class="content has-text-centered">
+        <p><strong>BES Loan Lite</strong> — Microcrédit interne © 2025</p>
+    </div>
+</footer>
+
+</body>
+</html>
+
+
+
+
+
+
+<!--Gestion des Prêts
+Une fois qu’un client est enregistré, vous pouvez aller dans le menu Prêts.
+•	Le formulaire permet de créer un nouveau prêt pour un client sélectionné dans la liste déroulante.
+•	Vous entrez le montant, le taux d’intérêt, la durée (en mois) et la date de début.
+•	L’application calcule automatiquement :
+o	les intérêts cumulés,
+o	le solde restant,
+o	le statut du prêt (ACTIF, REMBOURSÉ, EN RETARD).
+•	La table des prêts affiche toutes ces informations, avec des filtres (par statut ou par client) et de la pagination.
+Les prêts évoluent en fonction des paiements : ce n’est pas statique, c’est mis à jour automatiquement.

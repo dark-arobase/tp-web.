@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BES Loan Lite – Paiements</title>
+    <link rel="icon" type="image/png" href="https://bulma.io/images/bulma-logo.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar is-dark">
+    <div id="menu" class="navbar-menu">
+        <div class="navbar-start">
+            <a class="navbar-item" href="index.html">Dashboard</a>
+            <a class="navbar-item" href="loans.html">Prêts</a>
+            <a class="navbar-item" href="paiements.html">Paiements</a>
+            <a class="navbar-item" href="client.html">Client</a>
+        </div>
+
+        <div class="navbar-end">
+            <div class="navbar-item">
+                <button class="button is-light" onclick="logout()">Déconnexion</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<section class="section">
+<div class="container">
+
+    <h1 class="title">Gestion des paiements</h1>
+    <h2 class="subtitle">Ajouter un nouveau paiement</h2>
+
+    <div class="box">
+        <form id="paiement-form">
+            <input type="hidden" id="payment-id">
+
+            <!-- FORMULAIRE -->
+            <div class="columns">
+                
+                <!-- Prêt -->
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Prêt concerné</label>
+                        <div class="control has-icons-left">
+                            <div class="select is-fullwidth">
+                                <select id="pretSelect" required>
+                                    <option value="">Sélectionnez un prêt</option>
+                                </select>
+                            </div>
+                            <span class="icon is-left"><i class="fas fa-file-invoice-dollar"></i></span>
+                        </div>
+                        <p class="help is-danger" id="pret-error" style="display:none;"></p>
+                    </div>
+                </div>
+
+                <!-- Montant -->
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Montant ($ CAD)</label>
+                        <div class="control has-icons-left">
+                            <input class="input" type="number" id="montant" placeholder="Ex : 250" required>
+                            <span class="icon is-left"><i class="fas fa-dollar-sign"></i></span>
+                        </div>
+                        <p class="help is-danger" id="montant-error" style="display:none;"></p>
+                    </div>
+                </div>
+
+                <!-- Date -->
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Date de paiement</label>
+                        <div class="control has-icons-left">
+                            <input class="input" type="date" id="date" required>
+                            <span class="icon is-left"><i class="fas fa-calendar-alt"></i></span>
+                        </div>
+                        <p class="help is-danger" id="date-error" style="display:none;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="columns">
+            <!-- Mode de paiement -->
+            <div class="column">
+                <div class="field">
+                <label class="label">Mode de paiement</label>
+                <div class="control has-icons-left">
+                    <div class="select is-fullwidth">
+                    <select id="mode" required>
+                        <option value="">Sélectionner</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Virement">Virement</option>
+                        <option value="Carte">Carte bancaire</option>
+                        <option value="Chèque">Chèque</option>
+                        <option value="Mobile">Paiement mobile</option>
+                    </select>
+                    </div>
+                    <span class="icon is-left"><i class="fas fa-hand-holding-dollar"></i></span>
+                </div>
+                <p class="help is-danger" id="mode-error" style="display:none;"></p>
+                </div>
+            </div>
+
+            <!-- Note -->
+            <div class="column">
+                <div class="field">
+                <label class="label">Note (optionnel)</label>
+                <div class="control has-icons-left">
+                    <input class="input" type="text" id="note" placeholder="Ex : Paiement partiel">
+                    <span class="icon is-left"><i class="fas fa-sticky-note"></i></span>
+                </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- BOUTONS -->
+            <div class="field is-grouped">
+                <div class="control">
+                    <button class="button is-primary" id="submit-btn" type="submit">Ajouter paiement</button>
+                </div>
+                <div class="control">
+                    <button class="button is-danger" id="cancel-edit" type="button" style="display:none;">Annuler</button>
+                </div>
+            </div>
+        
+        </form>
+
+        <!-- Notifications -->
+        <div class="notification is-success" id="success-message" style="display:none;">
+            Paiement enregistré avec succès !
+        </div>
+        <div class="notification is-danger" id="error-message" style="display:none;">
+            Une erreur est survenue. Veuillez réessayer.
+        </div>
+
+    </div>
+
+    <h2 class="subtitle">Historique des paiements</h2>
+
+    <table class="table is-fullwidth" id="payments-table">
+        <thead>
+            <tr>
+                <th>Prêt client</th>
+                <th>Montant</th>
+                <th>Date</th>
+                <th>Mode</th>
+                <th>Note</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+</div>
+</section>
+
+<script src="paiements.js"></script>
+
+</body>
+</html>
+
+
+<!-- 
+Gestion des Paiements
+Pour enregistrer qu’un client a payé une partie de son prêt, vous allez dans la section Paiements.
+•	Vous choisissez le prêt concerné dans un menu déroulant.
+•	Vous saisissez le montant payé, la date, le mode (cash, virement, etc.) et une note éventuelle.
+•	Quand vous validez, le paiement est enregistré dans la base de données.
+•	Le solde du prêt est recalculé automatiquement et le statut peut changer (par exemple, de ACTIF à REMBOURSÉ).
+•	La table des paiements vous permet de voir tout l’historique des transactions.
+Chaque paiement modifie directement le tableau des prêts et le dashboard.
+ -->

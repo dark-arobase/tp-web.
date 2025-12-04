@@ -1,4 +1,23 @@
-// ...existing code...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*// ...existing code...
 const form = document.getElementById('client-form')
 const fields = {
   nom: document.getElementById('nom'),
@@ -40,8 +59,8 @@ function validateField(name){
       else showError(name, '')
       break
     case 'telephone':
-      if(!validatePhone(v)) showError(name, 'Téléphone invalide (ex: +33123456789)')
-      else showError(name, '')
+      if(!validatePhone(v)) showError('telephone', 'Téléphone invalide (ex: +33123456789)')
+      else showError('telephone', '')
       break
     case 'email':
       if(!fields.email.checkValidity()) showError('email', 'Email invalide')
@@ -77,4 +96,4 @@ form.addEventListener('submit', (e)=>{
   // submitClient(data)
   console.log('Données validées :', data)
 })
-// ...existing code...
+// ...existing code...*/
