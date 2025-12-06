@@ -1,50 +1,114 @@
-/* NAVBAR */
-.navbar {
-    padding: 1rem;
+/* BOX DASHBOARD */
+.dashboard-box {
+    padding: 1.5rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.45);
 }
 
-/* TITRES */
+/* TABLEAU DASHBOARD */
+.dashboard-table {
+    border-radius: 14px;
+    overflow: hidden;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* En-têtes */
+.dashboard-table th {
+    background: linear-gradient(145deg, #2e2e2e, #252525);
+    color: #ffffff;
+    font-weight: 600;
+    text-align: center;
+    padding: 1rem;
+    font-size: 1.07rem;
+    border-bottom: 2px solid #4a4a4a;
+    letter-spacing: 0.5px;
+}
+
+/* Cellules */
+.dashboard-table td {
+    text-align: center;
+    padding: 1rem;
+    font-size: 1.05rem;
+    color: #e6e6e6;
+    background-color: rgba(255,255,255,0.03);
+    border-right: 1px solid rgba(255,255,255,0.07);
+}
+
+/* Enlever la bordure sur la dernière colonne */
+.dashboard-table td:last-child,
+.dashboard-table th:last-child {
+    border-right: none;
+}
+
+/* Alternance douce */
+.dashboard-table tr:nth-child(even) td {
+    background-color: rgba(255,255,255,0.06);
+}
+
+/* Hover moderne */
+.dashboard-table tr:hover td {
+    background-color: rgba(255,255,255,0.12);
+    transition: 0.25s ease-in-out;
+}
+
+/* Effet “mini tableau” (séparation horizontale nette) */
+.dashboard-table tbody tr td {
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.dashboard-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Badge retard */
+.retard-badge {
+    margin-left: 6px;
+    font-size: 0.75rem;
+}
+
+/* Titres */
 .title, .subtitle {
     text-align: center;
+    color: #ffffff;
 }
 
-/* BOXES */
+/* BOX INFO */
 .box {
+    border-radius: 14px;
+    background-color: #2b2b2b;
     padding: 1rem;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.45);
+    color: #e0e0e0;
+}
+
+/* BOUTON RAFRAICHIR */
+#refresh-dashboard {
+    background-color: #4a90e2;
+    color: #fff;
+    border: none;
     border-radius: 8px;
+    padding: 0.55rem 1rem;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+#refresh-dashboard:hover {
+    background-color: #357ab8;
+    transform: translateY(-2px);
 }
 
-/* FORM INPUTS */
-.input {
-    height: 2.3rem;
-}
-
-/* TABLE */
-#clients-table th, 
-#clients-table td {
-    padding: 0.7rem;
-}
-
-#clients-table tbody tr:hover {
-    background-color: rgba(0,0,0,0.05);
-}
-
-/* PAGINATION */
-#client-pagination .button {
-    margin: 0 0.2rem;
-}
-
-/* NOTIFICATIONS */
-.notification {
-    border-radius: 6px;
-}
-
-/* RESPONSIVE */
+/* version mobile */
 @media (max-width: 900px) {
-    #clients-table {
+    .dashboard-table {
         display: block;
         overflow-x: auto;
         white-space: nowrap;
     }
 }
+
+
+
 
