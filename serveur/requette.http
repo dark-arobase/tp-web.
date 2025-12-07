@@ -1,16 +1,26 @@
 ####################################################################
-#                  BES LOAN LITE - API TESTS                      #
-#                     Date: 2025-12-05                             #
+#                  TESTS - GESTION UTILISATEURS                    #
+####################################################################
+curl -X GET http://localhost:3000/alluser
 ####################################################################
 
+curl -X POST http://localhost:3000/adduser \
+     -H "Content-Type: application/json" \
+     -d '{
+           "username": "admin",
+           "password": "password123"
+         }'
 ####################################################################
-#                    TESTS - GESTION CLIENTS                       #
-####################################################################
+curl -X POST http://localhost:3000/login
+     -H "Content-Type: application/json" \
+     -d '{
+           "username": "admin",
+           "password": "password123"
+         }'
 
-### 1. Récupérer tous les clients
+##########################CLIENTS##########################################
 curl -X GET http://localhost:3000/allClients
-
-### 2. Ajouter un nouveau client
+####################################################################
 curl -X POST http://localhost:3000/addClient \
      -H "Content-Type: application/json" \
      -d '{
@@ -20,9 +30,8 @@ curl -X POST http://localhost:3000/addClient \
            "email": "marie.tremblay@example.com",
            "adresse": "456 Rue Sherbrooke, Montreal, QC"
          }'
-
-### 3. Modifier un client (remplacer l'ID)
-curl -X PUT http://localhost:3000/updateClient/e719a1f7-db3c-40bb-9bea-e2ac86c936be \
+####################################################################
+curl -X PUT http://localhost:3000/updateClient/5f2d2332-d18c-4d47-ba11-4794d36b4b37 \
      -H "Content-Type: application/json" \
      -d '{
            "nom": "Tremblay",
@@ -32,63 +41,68 @@ curl -X PUT http://localhost:3000/updateClient/e719a1f7-db3c-40bb-9bea-e2ac86c93
            "adresse": "789 Boulevard René-Lévesque, Montreal, QC"
          }'
 
-### 4. Supprimer un client (remplacer l'ID)
-curl -X DELETE http://localhost:3000/deleteClient/e719a1f7-db3c-40bb-9bea-e2ac86c936be
-
 ####################################################################
-#                     TESTS - GESTION PRÊTS                        #
-####################################################################
+curl -X DELETE http://localhost:3000/deleteClient/5f2d2332-d18c-4d47-ba11-4794d36b4b37
 
-### 5. Récupérer tous les prêts
+##########################          PRET       ##########################################
+
 curl -X GET http://localhost:3000/allLoans
 
-### 6. Créer un nouveau prêt (utiliser un client_id existant)
+##########################PRET##########################################
+curl -X GET http://localhost:3000/allClients
+####################################################################
 curl -X POST http://localhost:3000/addLoan \
      -H "Content-Type: application/json" \
      -d '{
-           "client_id": "e719a1f7-db3c-40bb-9bea-e2ac86c936be",
+           "client_id": "907f215a-94f5-4331-babf-1e5ea71b6757",
            "montant": 5000,
            "taux": 6,
            "duree": 24,
-           "date": "2025-12-05"
+           "date": "2025-12-06"
          }'
 
-### 7. Modifier un prêt (remplacer l'ID)
-curl -X PUT http://localhost:3000/editLoan/LOAN_ID_HERE \
+##########################PRET##########################################
+curl -X PUT http://localhost:3000/editLoan/ba1cff79-56e1-4ff8-bc9c-d1d147469063 \
      -H "Content-Type: application/json" \
      -d '{
-           "client_id": "e719a1f7-db3c-40bb-9bea-e2ac86c936be",
+           "client_id": "907f215a-94f5-4331-babf-1e5ea71b6757",
            "montant": 6000,
            "taux": 5.5,
            "duree": 30,
-           "date": "2025-12-05"
+           "date": "2025-12-06"
          }'
 
-### 8. Supprimer un prêt (remplacer l'ID)
-curl -X DELETE http://localhost:3000/deleteLoan/LOAN_ID_HERE
+##########################PRET##########################################
+curl -X DELETE http://localhost:3000/deleteLoan/ba1cff79-56e1-4ff8-bc9c-d1d147469063
 
 ####################################################################
 #                   TESTS - GESTION PAIEMENTS                      #
 ####################################################################
 
-### 9. Récupérer tous les paiements
+
+curl -X GET http://localhost:3000/allLoans
+
+####################################################################
+curl -X GET http://localhost:3000/allClients
+####################################################################
+####################################################################
 curl -X GET http://localhost:3000/allPaiements
 
-### 10. Récupérer les paiements d'un prêt spécifique (remplacer l'ID)
-curl -X GET http://localhost:3000/paiements/LOAN_ID_HERE
+####################################################################
+curl -X GET http://localhost:3000/paiements/ba1cff79-56e1-4ff8-bc9c-d1d147469063
 
-### 11. Ajouter un paiement (utiliser un loan_id existant)
+####################################################################
 curl -X POST http://localhost:3000/addPaiement \
      -H "Content-Type: application/json" \
      -d '{
-           "loan_id": "LOAN_ID_HERE",
+           "loan_id": "ba1cff79-56e1-4ff8-bc9c-d1d147469063",
            "montant": 250,
            "date": "2025-12-15",
            "mode": "Cash",
            "note": "Premier paiement mensuel"
          }'
 
-### 12. Modifier un paiement (remplacer l'ID)
+####################################################################
 curl -X PUT http://localhost:3000/editPaiement/PAYMENT_ID_HERE \
      -H "Content-Type: application/json" \
      -d '{
@@ -99,56 +113,15 @@ curl -X PUT http://localhost:3000/editPaiement/PAYMENT_ID_HERE \
            "note": "Paiement modifié"
          }'
 
-### 13. Supprimer un paiement (remplacer l'ID)
+# 13. Supprimer un paiement
 curl -X DELETE http://localhost:3000/deletePaiement/PAYMENT_ID_HERE
 
-####################################################################
-#                 TESTS - SCÉNARIO COMPLET                         #
-####################################################################
-
-### SCÉNARIO 1: Créer un client avec prêt et paiements
-
-# Étape 1: Créer le client
-curl -X POST http://localhost:3000/addClient \
-     -H "Content-Type: application/json" \
-     -d '{
-           "nom": "Bouchard",
-           "prenom": "Jean",
-           "telephone": "4385551234",
-           "email": "jean.bouchard@example.com",
-           "adresse": "100 Rue Ontario, Montreal, QC"
-         }'
-
-# Étape 2: Copier le client_id retourné, puis créer le prêt
-# curl -X POST http://localhost:3000/addLoan \
-#      -H "Content-Type: application/json" \
-#      -d '{
-#            "client_id": "COPIER_LE_CLIENT_ID_ICI",
-#            "montant": 10000,
-#            "taux": 8,
-#            "duree": 12,
-#            "date": "2025-12-05"
-#          }'
-
-# Étape 3: Copier le loan_id retourné, puis ajouter un paiement
-# curl -X POST http://localhost:3000/addPaiement \
-#      -H "Content-Type: application/json" \
-#      -d '{
-#            "loan_id": "COPIER_LE_LOAN_ID_ICI",
-#            "montant": 900,
-#            "date": "2025-12-05",
-#            "mode": "Virement",
-#            "note": "Paiement initial"
-#          }'
-
-# Étape 4: Vérifier que le solde du prêt a été mis à jour
-# curl -X GET http://localhost:3000/allLoans
 
 ####################################################################
-#                    TESTS DE VALIDATION                           #
+#                 TESTS DE VALIDATION & ERREURS                    #
 ####################################################################
 
-### TEST ERREUR: Client sans nom (doit retourner 400)
+# Client sans nom (erreur attendue 400)
 curl -X POST http://localhost:3000/addClient \
      -H "Content-Type: application/json" \
      -d '{
@@ -158,7 +131,7 @@ curl -X POST http://localhost:3000/addClient \
            "adresse": "123 Test St"
          }'
 
-### TEST ERREUR: Client avec email invalide (doit retourner 400)
+# Client avec email invalide
 curl -X POST http://localhost:3000/addClient \
      -H "Content-Type: application/json" \
      -d '{
@@ -169,41 +142,40 @@ curl -X POST http://localhost:3000/addClient \
            "adresse": "123 Test St"
          }'
 
-### TEST ERREUR: Prêt sans client_id (doit retourner 400)
+# Prêt sans client_id
 curl -X POST http://localhost:3000/addLoan \
      -H "Content-Type: application/json" \
      -d '{
            "montant": 5000,
            "taux": 6,
            "duree": 24,
-           "date": "2025-12-05"
+           "date": "2025-12-06"
          }'
 
-### TEST ERREUR: Paiement avec montant négatif (doit retourner 400)
+# Paiement avec montant négatif
 curl -X POST http://localhost:3000/addPaiement \
      -H "Content-Type: application/json" \
      -d '{
            "loan_id": "LOAN_ID_HERE",
            "montant": -100,
-           "date": "2025-12-05",
+           "date": "2025-12-06",
            "mode": "Cash",
            "note": "Test erreur"
          }'
 
 ####################################################################
-#                       NOTES D'UTILISATION                        #
+#                 TEST SCÉNARIO COMPLET CLIENT-PRÊT-PAIEMENT       #
 ####################################################################
-# 
-# 1. Remplacer LOAN_ID_HERE, PAYMENT_ID_HERE avec vos vrais IDs
-# 
-# 2. Copier-coller les commandes curl dans votre terminal
-# 
-# 3. Ordre de test recommandé:
-#    a) Créer un client
-#    b) Créer un prêt pour ce client
-#    c) Ajouter des paiements
-#    d) Vérifier les mises à jour
-#    e) Tester les modifications
-#    f) Tester les suppressions
-# 
-####################################################################
+
+# Étape 1: Créer un client
+curl -X POST http://localhost:3000/addClient \
+     -H "Content-Type: application/json" \
+     -d '{
+           "nom": "Bouchard",
+           "prenom": "Jean",
+           "telephone": "4385551234",
+           "email": "jean.bouchard@example.com",
+           "adresse": "100 Rue Ontario, Montreal, QC"
+         }'
+
+#################################################################

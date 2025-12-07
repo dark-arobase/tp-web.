@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulaire avec Cookies (20 secondes)</title>
+</head>
+<body>
+
+<h2>Formulaire avec Cookies (Expire en 20 secondes)</h2>
+
+<form id="formulaire">
+    <label for="nom">Nom :</label>
+    <input type="text" id="nom" name="nom"><br><br>
+
+    <label for="prenom">Prénom :</label>
+    <input type="text" id="prenom" name="prenom"><br><br>
+
+    <label for="email">Email :</label>
+    <input type="email" id="email" name="email"><br><br>
+
+    <label for="telephone">Téléphone :</label>
+    <input type="text" id="telephone" name="telephone"><br><br>
+
+    <button type="submit">Enregistrer</button>
+</form>
+
+<script>
+const form = document.getElementById('formulaire');
+
+// Fonction pour générer une date d'expiration dans 20 secondes
+function expirationDans20Sec() {
+    const date = new Date();
+    date.setSeconds(date.getSeconds() + 20);
+    return date.toUTCString();
+}
+
+// Charger les données depuis les cookies
+function chargerDonneesDepuisCookies() {
+    const cookies = document.cookie.split('; ');
+    cookies.forEach(cookie => {
+        const [clé, valeur] = cookie.split('=');
+        const input = document.getElementById(clé);
+        if (input) {
+            input.value = decodeURIComponent(valeur);
+        }
+    });
+}
+
+// Sauvegarder les données dans les cookies (expire après 20 secondes)
+form.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const nom = document.getElementById('nom').value;
+    const prenom = document.getElementById('prenom').value;
+    const email = document.getElementById('email').value;
+    const telephone = document.getElementById('telephone').value;
+
+    const expiration = expirationDans20Sec();
+
+    document.cookie = `nom=${encodeURIComponent(nom)}; expires=${expiration}; path=/`;
+    document.cookie = `prenom=${encodeURIComponent(prenom)}; expires=${expiration}; path=/`;
+    document.cookie = `email=${encodeURIComponent(email)}; expires=${expiration}; path=/`;
+    document.cookie = `telephone=${encodeURIComponent(telephone)}; expires=${expiration}; path=/`;
+
+    alert('Données sauvegardées pour 20 secondes.');
+});
+
+// Charger les cookies au démarrage
+chargerDonneesDepuisCookies();
+</script>
+
+</body>
+</html>

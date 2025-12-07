@@ -12,20 +12,26 @@ router.post('/addClient', async (req, res) => {
     try {
         const { nom, prenom, telephone, email, adresse } = req.body;
 
-        if (!nom) {
-            return res.status(400).json({ success: false, error: "Le champ 'nom' est obligatoire." });
+        if (!(nom)) {
+            return res.status(400).json({ error: "Le champ 'nom' est obligatoire." });
         }
-        if (!prenom) {
-            return res.status(400).json({ success: false, error: "Le champ 'prenom' est obligatoire." });
+        if (!(prenom)) {
+            return res.status(400).json({ error: "Le champ 'prenom' est obligatoire." });
         }
-        if (!telephone || !/^\+?\d{10}$/.test(telephone)) {
-            return res.status(400).json({ success: false, error: "Le champ 'telephone' est obligatoire et doit être valide." });
+        if (!telephone ) {
+            return res.status(400).json({ error: "Le champ 'telephone' est obligatoire." });
         }
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            return res.status(400).json({ success: false, error: "Le champ 'email' est obligatoire et doit être valide." });
+        if (!/^\+?\d{10}$/.test(telephone)) {
+            return res.status(400).json({ error: "Téléphone invalide (10 chiffres)." });
+        }
+        if (!(email)) {
+            return res.status(400).json({ error: "Le champ 'email' est obligatoire." });
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ error: "Email invalide." });
         }
         if (!adresse ) {
-            return res.status(400).json({ success: false, error: "Le champ 'adresse' est obligatoire." });
+            return res.status(400).json({ error: "Le champ 'adresse' est obligatoire." });
         }
         /* revoir pour la validation plus tard */
         const clients = {
@@ -72,20 +78,26 @@ router.put('/updateClient/:id', async (req, res) => {
 
         const clientToUpdate = {};
 
-        if (!nom) {
-            return res.status(400).json({ success: false, error: "Le champ 'nom' est obligatoire." });
+        if (!(nom)) {
+            return res.status(400).json({ error: "Le champ 'nom' est obligatoire." });
         }
-        if (!prenom) {
-            return res.status(400).json({ success: false, error: "Le champ 'prenom' est obligatoire." });
+        if (!(prenom)) {
+            return res.status(400).json({ error: "Le champ 'prenom' est obligatoire." });
         }
-        if (!telephone || !/^\+?\d{10}$/.test(telephone)) {
-            return res.status(400).json({ success: false, error: "Le champ 'telephone' est obligatoire et doit être valide." });
+        if (!telephone ) {
+            return res.status(400).json({ error: "Le champ 'telephone' est obligatoire." });
         }
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            return res.status(400).json({ success: false, error: "Le champ 'email' est obligatoire et doit être valide." });
+        if (!/^\+?\d{10}$/.test(telephone)) {
+            return res.status(400).json({ error: "Téléphone invalide (10 chiffres)." });
+        }
+        if (!(email)) {
+            return res.status(400).json({ error: "Le champ 'email' est obligatoire." });
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ error: "Email invalide." });
         }
         if (!adresse ) {
-            return res.status(400).json({ success: false, error: "Le champ 'adresse' est obligatoire." });
+            return res.status(400).json({ error: "Le champ 'adresse' est obligatoire." });
         }
       clientToUpdate.nom = nom;
 

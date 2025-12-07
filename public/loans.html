@@ -13,7 +13,8 @@
 
 <!-- NAVBAR -->
 <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
-    <div class="navbar-menu is-active">
+
+    <div id="menu" class="navbar-menu">
         <div class="navbar-start">
             <a class="navbar-item" href="index.html">Dashboard</a>
             <a class="navbar-item" href="loans.html" aria-current="page">Prêts</a>
@@ -22,7 +23,9 @@
         </div>
         <div class="navbar-end">
             <div class="navbar-item">
-                <button class="button is-light">Déconnexion</button>
+                <div class="buttons">
+                    <a class="button is-light" href="login.html">Déconnexion</a>
+                </div>
             </div>
         </div>
     </div>
@@ -44,7 +47,7 @@
                         <label class="label">Client</label>
                         <div class="control has-icons-left">
                             <div class="select is-fullwidth">
-                                <select id="clientSelect" required>
+                                <select id="clientSelect">
                                     <option value="">Sélectionnez un client</option>
                                 </select>
                             </div>
@@ -58,7 +61,7 @@
                     <div class="field">
                         <label class="label">Montant ($ CAD)</label>
                         <div class="control has-icons-left">
-                            <input class="input" type="number" id="montant" placeholder="Ex : 10000" required>
+                            <input class="input" type="number" id="montant" placeholder="Ex : 10000">
                             <span class="icon is-left"><i class="fas fa-dollar-sign"></i></span>
                         </div>
                         <p class="help is-danger" id="montant-error" style="display:none;"></p>
@@ -69,7 +72,7 @@
                     <div class="field">
                         <label class="label">Taux mensuel (%)</label>
                         <div class="control has-icons-left">
-                            <input class="input" type="number" id="taux" placeholder="Ex : 5" required>
+                            <input class="input" type="number" id="taux" placeholder="Ex : 5">
                             <span class="icon is-left"><i class="fas fa-percentage"></i></span>
                         </div>
                         <p class="help is-danger" id="taux-error" style="display:none;"></p>
@@ -82,7 +85,7 @@
                     <div class="field">
                         <label class="label">Durée (mois)</label>
                         <div class="control has-icons-left">
-                            <input class="input" type="number" id="duree" placeholder="Ex : 12" required>
+                            <input class="input" type="number" id="duree" placeholder="Ex : 12">
                             <span class="icon is-left"><i class="fas fa-clock"></i></span>
                         </div>
                         <p class="help is-danger" id="duree-error" style="display:none;"></p>
@@ -93,7 +96,7 @@
                     <div class="field">
                         <label class="label">Date de début</label>
                         <div class="control has-icons-left">
-                            <input class="input" type="date" id="date" required>
+                            <input class="input" type="date" id="date">
                             <span class="icon is-left"><i class="fas fa-calendar-alt"></i></span>
                         </div>
                         <p class="help is-danger" id="date-error" style="display:none;"></p>
@@ -124,7 +127,7 @@
     </form>
     <!--- <div id="loan-success" class="notification is-success" style="display:none">Prêt enregistré avec succès</div>
     <div id="loan-error" class="notification is-danger" style="display:none">Erreur lors de l'enregistrement</div>-->
-    <h2 class="subtitle">Liste des prêts déjà enregistrés</h2>
+    <h2 class="subtitle">Liste des prêts</h2>
 
     <div class="box">
         <!-- Filtres -->
@@ -137,7 +140,7 @@
                         <option value="">Tous</option>
                         <option value="ACTIF">Actif</option>
                         <option value="REMBOURSÉ">Remboursé</option>
-                        <option value="ENRETARD">En retard</option>
+                        <option value="EN RETARD">En retard</option>
                     </select>
                 </div>
                 <span class="icon is-left"><i class="fas fa-filter"></i></span>
@@ -194,13 +197,6 @@
 </section>
 
 <script src="loans.js"></script>
-
-<footer class="footer">
-    <div class="content has-text-centered">
-        <p><strong>BES Loan Lite</strong> — Microcrédit interne © 2025</p>
-    </div>
-</footer>
-
 </body>
 </html>
 

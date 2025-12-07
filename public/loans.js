@@ -20,13 +20,63 @@ const tauxInput = document.getElementById("taux");
 const dureeInput = document.getElementById("duree");
 const dateInput = document.getElementById("date");
 
+// Error elements for per-field validation
+const errorClient = document.getElementById("client-error");
+const errorMontant = document.getElementById("montant-error");
+const errorTaux = document.getElementById("taux-error");
+const errorDuree = document.getElementById("duree-error");
+const errorDate = document.getElementById("date-error");
+//// =====================================================
+// BOUTONS FORM
+// =====================================================
 const submitBtn = document.getElementById("submit-btn");
 const cancelEdit = document.getElementById("cancel-edit");
-
 const loansTableBody = document.querySelector("#loans-table tbody");
 const searchInput = document.getElementById("search-loan");
+const paginationContainer = document.getElementById("pagination");
 
 cancelEdit.style.display = "none";
+
+// Per-field error helpers (local)
+function showFieldError(input, errorElement, message) {
+    input.classList.add('is-danger');
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+}
+
+function clearFieldError(input, errorElement) {
+    input.classList.remove('is-danger');
+    if (errorElement) {
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+    }
+}
+
+// realtime clear listeners
+loanClientSelect.addEventListener('change', () => { 
+    if (loanClientSelect.value) 
+        clearFieldError(loanClientSelect, errorClient); 
+    });
+montantInput.addEventListener('input', () => { 
+    if (montantInput.value.trim()) 
+        clearFieldError(montantInput, errorMontant); 
+    });
+tauxInput.addEventListener('input', () => { 
+    if (tauxInput.value.trim()) 
+        clearFieldError(tauxInput, errorTaux); 
+    });
+dureeInput.addEventListener('input', () => { 
+    if (dureeInput.value.trim()) 
+        clearFieldError(dureeInput, errorDuree); 
+    });
+dateInput.addEventListener('input', () => { 
+    if (dateInput.value.trim()) 
+        clearFieldError(dateInput, errorDate); 
+    });
+
+
 
 
 // =====================================================
@@ -67,8 +117,7 @@ async function loadLoans() {
         loans = await res.json();
         filteredLoans = [...loans];
         currentPage = 1;
-        AffichageLoans();
-        renderPagination();
+        paginate();
     } catch (err) {
         console.error(err);
         showError('Erreur lors de la recuperation des prêts');
@@ -80,24 +129,37 @@ async function loadLoans() {
 // =====================================================
 // 3. Affichage Loans
 // =====================================================
-function AffichageLoans() {
+function AffichageLoans(list = filteredLoans) {
     loansTableBody.innerHTML = "";
-    
-    const start = (currentPage - 1) * loansPerPage;
-    const end = start + loansPerPage;
 
-    filteredLoans.slice(start, end).forEach(l => {
+    // If the caller passed the already-sliced page list (from paginate()),
+    // use it directly. If the caller passed the full `filteredLoans`, slice
+    // it according to the current page.
+    let displayList = list;
+    if (list === filteredLoans) {
+        const start = (currentPage - 1) * loansPerPage;
+        const end = start + loansPerPage;
+        displayList = list.slice(start, end);
+    }
+
+    if (displayList.length === 0) {
+        loansTableBody.innerHTML =
+            `<tr><td colspan="9" class="has-text-centered">Aucun prêt trouvé</td></tr>`;
+        return;
+    }
+
+    displayList.forEach(l => {
         const client = clients.find(c => String(c.id) === String(l.client_id));
 
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${client ? client.prenom + " " + client.nom : "—"}</td>
-            <td>${l.montant}$</td>
+            <td>${Number(l.montant).toFixed(2)} $</td>
             <td>${l.taux}%</td>
             <td>${l.duree} mois</td>
             <td>${l.date}</td>
-            <td>${l.interets || 0}$</td>
-            <td>${l.solde || 0}$</td>
+            <td>${Number(l.interets || 0).toFixed(2)} $</td>
+            <td>${Number(l.solde || 0).toFixed(2)} $</td>
             <td>${l.statut}</td>
             <td>
                 <button class="button is-small is-primary" data-edit="${l.id}">
@@ -112,31 +174,61 @@ function AffichageLoans() {
     });
 }
 
-
-
 // =====================================================
 // 4. Pagination
 // =====================================================
+function paginate() {
+    const start = (currentPage - 1) * loansPerPage;
+    const end = start + loansPerPage;
+    const pageList = filteredLoans.slice(start, end);
+    AffichageLoans(pageList);
+    renderPagination();
+}
+
 function renderPagination() {
     const totalPages = Math.ceil(filteredLoans.length / loansPerPage);
-    const pagination = document.getElementById("pagination");
+    if (!paginationContainer) return;
 
-    if (!pagination) return;
-    pagination.innerHTML = "";
-    if (totalPages === 0) return;
+    paginationContainer.innerHTML = "";
+    if (totalPages <= 1) return;
 
+    // précédent
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "button is-small";
+    prevBtn.textContent = "« Précédent";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            paginate();
+        }
+    });
+    paginationContainer.appendChild(prevBtn);
+
+    // numérotés
     for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement("button");
-        btn.className = `button ${i === currentPage ? "is-link" : ""}`;
+        btn.className = "button is-small" + (i === currentPage ? " is-primary" : "");
         btn.textContent = i;
-
-        btn.onclick = () => {
+        btn.addEventListener('click', () => {
             currentPage = i;
-            AffichageLoans();
-            renderPagination();
-        };
-        pagination.appendChild(btn);
+            paginate();
+        });
+        paginationContainer.appendChild(btn);
     }
+
+    // suivant
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "button is-small";
+    nextBtn.textContent = "Suivant »";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            paginate();
+        }
+    });
+    paginationContainer.appendChild(nextBtn);
 }
 
 
@@ -154,30 +246,34 @@ formLoans.addEventListener("submit", async (event) => {
     const duree = dureeInput.value;
     const date = dateInput.value;
 
+    // Per-field validation (show inline errors)
+    let hasError = false;
     if (!client_id) {
-        showError("Veuillez sélectionner un client");
-        return;
-    }
-    
-    if (!montant || montant <= 0) {
-        showError("Veuillez entrer un montant valide");
-        return;
-    }
+        showFieldError(loanClientSelect, errorClient, "Veuillez sélectionner un client");
+        hasError = true;
+    } else clearFieldError(loanClientSelect, errorClient);
 
-    if (!taux || taux <= 0) {
-        showError("Veuillez entrer un taux  valide");
-        return;
-    }
+    if (!montant || Number(montant) <= 0) {
+        showFieldError(montantInput, errorMontant, "Veuillez entrer un montant valide");
+        hasError = true;
+    } else clearFieldError(montantInput, errorMontant);
 
-    if (!duree || duree <= 0) {
-        showError("Veuillez entrer une durée valide");
-        return;
-    }
+    if (!taux || Number(taux) <= 0) {
+        showFieldError(tauxInput, errorTaux, "Veuillez entrer un taux valide");
+        hasError = true;
+    } else clearFieldError(tauxInput, errorTaux);
+
+    if (!duree || Number(duree) <= 0) {
+        showFieldError(dureeInput, errorDuree, "Veuillez entrer une durée valide");
+        hasError = true;
+    } else clearFieldError(dureeInput, errorDuree);
 
     if (!date) {
-        showError("Veuillez entrer une date valide");
-        return;
-    }
+        showFieldError(dateInput, errorDate, "Veuillez entrer une date valide");
+        hasError = true;
+    } else clearFieldError(dateInput, errorDate);
+
+    if (hasError) return;
     try {
         if (id) {
             // PUT
@@ -235,7 +331,7 @@ loansTableBody.addEventListener("click", async (e) => {
 
         loanId.value = id;
         loanClientSelect.value = loan.client_id;
-        montantInput.value = loan.montant;
+        montantInput.value = typeof loan.montant !== 'undefined' ? Number(loan.montant).toFixed(2) : '';
         tauxInput.value = loan.taux;
         dureeInput.value = loan.duree;
         dateInput.value = loan.date;
@@ -311,8 +407,7 @@ function sortLoans(column) {
     });
 
     currentPage = 1;
-    AffichageLoans();
-    renderPagination();
+    paginate();
     updateSortIcons();
 }
 
@@ -365,8 +460,7 @@ function applyFilters() {
     });
 
     currentPage = 1;
-    AffichageLoans();
-    renderPagination();
+    paginate();
 }
 
 

@@ -1,52 +1,55 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>BES Loan</title>
-    <link rel="icon" type="image/png" href="/img/logo.png">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
+    <link rel="icon" type="image/png" href="/img/logo.png" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <section class="section">
-  <div class="container" style="display:flex; justify-content:center; align-items:center; min-height:75vh;">
-  <!-- page content -->
+  <div class="container">
+    <div class="columns is-centered">
       <div class="column is-5-tablet is-4-desktop">
         <div class="box">
           <h2 class="title is-4 has-text-centered">BES Loan</h2>
           <h3 class="subtitle is-6 has-text-centered">Se connecter</h3>
 
           <form id="identification-Form">
-            <input type="hidden" id="uId">
-            
             <div class="field">
-              <label class="label">Nom d'utilisateur</label>
+              <label class="label" for="username">Nom d'utilisateur</label>
               <div class="control has-icons-left">
-                <input class="input" type="text" id="username" name="username" placeholder="Nom d'utilisateur" required>
-              <span class="icon is-left"><i class="fas fa-user"></i></span>
+                <input class="input" type="text" id="username" name="username" placeholder="Nom d'utilisateur" />
+                <span class="icon is-left"><i class="fas fa-user"></i></span>
               </div>
+              <div class="help is-danger" id="username-error" style="display:none;"></div>
             </div>
 
             <div class="field">
-              <label class="label">Mot de passe</label>
+              <label class="label" for="password">Mot de passe</label>
               <div class="control has-icons-left">
-                <input class="input" type="password" id="password" name="password" placeholder="Mot de passe" required>
-              <span class="icon is-left"><i class="fas fa-lock"></i></span>
+                <input class="input" type="password" id="password" name="password" placeholder="Mot de passe" />
+                <span class="icon is-left"><i class="fas fa-lock"></i></span>
+              </div>
+              <div class="help is-danger" id="password-error" style="display:none;"></div>
             </div>
-          </div>
 
             <div class="field">
               <div class="control">
                 <label class="checkbox">
-                  <input type="checkbox" id="rememberMe"> Se souvenir de moi
+                  <input type="checkbox" id="rememberMe" />
+                  <span title="Vos identifiants seront sauvegardés dans les cookies pendant 30 jours">Se souvenir de moi</span>
                 </label>
-                <button class="button is-primary is-fullwidth" id="entrer-identification-formulaire" type="submit">Se connecter</button>
+                <button class="button is-primary is-fullwidth" type="submit">Se connecter</button>
               </div>
             </div>
 
-            <p class="has-text-centered">Pas de compte ? <a href="register.html">Inscrivez-vous</a></p>
+            <p class="has-text-centered">
+              Pas de compte ? <a href="register.html">Inscrivez-vous</a>
+            </p>
           </form>
         </div>
       </div>
@@ -54,6 +57,6 @@
   </div>
 </section>
 
-<script src="user.js"></script>
+<script src="login.js"></script>
 </body>
 </html>

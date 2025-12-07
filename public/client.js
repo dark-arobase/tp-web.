@@ -42,20 +42,52 @@ const searchInput = document.getElementById("search-client");
 const clearSearchBtn = document.getElementById("clear-search");
 cancelClientEdit.style.display = "none";
 
-// =========================
-// VALIDATION VISUELLE
-// =========================
-function showFieldError(input, errorElement, message) {
-    input.classList.add("is-danger");
-    errorElement.textContent = message;
-    errorElement.style.display = "block";
+
+
+
+function showFieldError(input, errorElem, message) {
+    if (input) input.classList.add("is-danger");
+    if (errorElem) {
+        errorElem.textContent = message || "";
+        errorElem.style.display = "block";
+    }
 }
 
-function clearFieldError(input, errorElement) {
-    input.classList.remove("is-danger");
-    errorElement.textContent = "";
-    errorElement.style.display = "none";
+function clearFieldError(input, errorElem) {
+    if (input) input.classList.remove("is-danger");
+    if (errorElem) {
+        errorElem.textContent = "";
+        errorElem.style.display = "none";
+    }
 }
+
+nomClient.addEventListener("input", () => {
+  if (nomClient.value.trim()) {
+    clearFieldError(nomClient, errorNomClient);
+  }
+});
+prenomClient.addEventListener("input", () => {
+  if (prenomClient.value.trim()) {
+    clearFieldError(prenomClient, errorPrenomClient);
+  }
+});
+telephoneClient.addEventListener("input", () => {
+  if (telephoneClient.value.trim()) {
+    clearFieldError(telephoneClient, errorTelephoneClient);
+  }
+}); 
+emailClient.addEventListener("input", () => {
+  if (emailClient.value.trim()) {
+    clearFieldError(emailClient, errorEmailClient);
+  }
+});
+adresseClient.addEventListener("input", () => {
+  if (adresseClient.value.trim()) {
+    clearFieldError(adresseClient, errorAdresseClient);
+  }
+});
+
+
 
 // =========================
 // RENDU TABLEAU
@@ -225,12 +257,11 @@ async function loadClients() {
 // RECHERCHE LIVE
 // =========================
 searchInput.addEventListener("input", () => {
-    const term = searchInput.value.toLowerCase();
+    const term = searchInput.value.trim().toLowerCase();
     filteredClients = clients.filter(c =>
-        `${String(c.prenom || "")} ${String(c.nom || "")}`.toLowerCase().includes(term) ||
-        String(c.email || "").toLowerCase().includes(term) ||
-        String(c.telephone || "").toLowerCase().includes(term) ||
-        String(c.adresse || "").toLowerCase().includes(term)
+        [c.prenom, c.nom, c.email, c.telephone, c.adresse]
+        .map(v => (v || "").toLowerCase())
+        .some(v => v.includes(term))
     );
     currentPage = 1;
     paginate();
@@ -415,24 +446,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-
-document.addEventListener(DOMcontent)
-
-
-/*
-Attacher les événements de tri*
-document.addEventListener('Loaded', () => {
-    const sortLinks = document.querySelectorAll('log-out');
-    sortLinks.forEach(link => {
-        link.style.cursor = 'pointer';
-        link.addEventListener('click', () => {
-            const column = link.dataset.column;
-            sortClients(column);
-        });
-    });
-});
-
-document.addEventListener(Loaded)
-*/
 
 loadClients();

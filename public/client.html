@@ -12,24 +12,24 @@
 <body>
 
     <!-- NAVBAR -->
-    <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
-      <div id="menu" class="navbar-menu">
-        <div class="navbar-start">
-          <a class="navbar-item" href="index.html">Dashboard</a>
-          <a class="navbar-item" href="loans.html">Prêts</a>
-          <a class="navbar-item" href="paiements.html">Paiements</a>
-          <a class="navbar-item" href="client.html" aria-current="page">Client</a>
-        </div>
-        <div class="navbar-end">
-          <div class="navbar-item">
-            <div class="buttons">
-              <button class="button is-light" onclick="logout()">Déconnexion</button>
-              <!---data-column="logout"><span class="log-out"></span>-->
+        <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
+
+            <div id="menu" class="navbar-menu">
+                <div class="navbar-start">
+                    <a class="navbar-item" href="index.html">Dashboard</a>
+                    <a class="navbar-item" href="loans.html">Prêts</a>
+                    <a class="navbar-item" href="paiements.html">Paiements</a>
+                    <a class="navbar-item" href="client.html" aria-current="page">Client</a>
+                </div>
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <a class="button is-light" href="login.html">Déconnexion</a>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </nav>
+        </nav>
 
 
     <!-- SECTION -->
@@ -48,7 +48,7 @@
                             <div class="field">
                                 <label class="label" for="nom">Nom :</label>
                                 <div class="control has-icons-left">
-                                    <input class="input" type="text" id="nom" name="nom" placeholder="Ex : Tremblay" required>
+                                    <input class="input" type="text" id="nom" name="nom" placeholder="Ex : Tremblay">
                                     <span class="icon is-left"><i class="fas fa-user"></i></span>
                                 </div>
                                 <div class="help is-danger" id="nom-error" style="display:none;"></div>
@@ -58,7 +58,7 @@
                             <div class="field">
                                 <label class="label" for="prenom">Prénom :</label>
                                 <div class="control has-icons-left">
-                                    <input class="input" type="text" id="prenom" name="prenom" required placeholder="Ex : Samuel">
+                                    <input class="input" type="text" id="prenom" name="prenom" placeholder="Ex : Samuel">
                                     <span class="icon is-left"><i class="fas fa-user"></i></span>
                                 </div>
                                 <div class="help is-danger" id="prenom-error" style="display:none;"></div>
@@ -71,7 +71,7 @@
                             <div class="field">
                                 <label class="label" for="telephone">Téléphone :</label>
                                 <div class="control has-icons-left">
-                                    <input class="input" type="text" id="telephone" name="telephone" required placeholder="Ex : 5141234567 (10 chiffres)">
+                                    <input class="input" type="text" id="telephone" name="telephone" placeholder="Ex : 5141234567 (10 chiffres)">
                                     <span class="icon is-left"><i class="fas fa-phone"></i></span>
                                 </div>
                                 <div class="help is-danger" id="telephone-error" style="display:none;"></div>
@@ -82,7 +82,7 @@
                             <div class="field">
                                 <label class="label" for="email">Email :</label>
                                 <div class="control has-icons-left">
-                                    <input class="input" type="email" id="email" name="email" required placeholder="Ex : samuel@mail.com">
+                                    <input class="input" type="email" id="email" name="email" placeholder="Ex : samuel@mail.com">
                                     <span class="icon is-left"><i class="fas fa-envelope"></i></span>
                                 </div>
                                 <div class="help is-danger" id="email-error" style="display:none;"></div>
@@ -93,7 +93,7 @@
                     <div class="field">
                         <label class="label" for="adresse">Adresse :</label>
                         <div class="control has-icons-left">
-                            <input class="input" type="text" id="adresse" name="adresse" required placeholder="Ex : 123 Rue des Pins, Montréal">
+                            <input class="input" type="text" id="adresse" name="adresse" placeholder="Ex : 123 Rue des Pins, Montréal">
                             <span class="icon is-left"><i class="fas fa-map-marker-alt"></i></span>
                         </div>
                         <div class="help is-danger" id="adresse-error" style="display:none;"></div>
@@ -169,14 +169,6 @@
 
         </div> <!-- ←← FERMETURE DU CONTAINER AJOUTÉE -->
     </section>
-
-    <script src="client.js"></script>
-
-<footer class="footer">
-    <div class="content has-text-centered">
-      <p><strong>BES Loan Lite</strong> — Microcrédit interne © 2025</p>
-    </div>
-</footer>
-
+        <script src="client.js"></script>
 </body>
 </html>

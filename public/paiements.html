@@ -12,18 +12,21 @@
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar is-dark">
+<nav class="navbar is-dark" role="navigation" aria-label="main navigation">
+
     <div id="menu" class="navbar-menu">
         <div class="navbar-start">
             <a class="navbar-item" href="index.html">Dashboard</a>
             <a class="navbar-item" href="loans.html">Prêts</a>
-            <a class="navbar-item" href="paiements.html">Paiements</a>
+            <a class="navbar-item" href="paiements.html" aria-current="page">Paiements</a>
             <a class="navbar-item" href="client.html">Client</a>
         </div>
 
         <div class="navbar-end">
             <div class="navbar-item">
-                <button class="button is-light" onclick="logout()">Déconnexion</button>
+                <div class="buttons">
+                    <a class="button is-light" href="login.html">Déconnexion</a>
+                </div>
             </div>
         </div>
     </div>
@@ -48,7 +51,7 @@
                         <label class="label">Prêt concerné</label>
                         <div class="control has-icons-left">
                             <div class="select is-fullwidth">
-                                <select id="pretSelect" required>
+                                <select id="pretSelect">
                                     <option value="">Sélectionnez un prêt</option>
                                 </select>
                             </div>
@@ -63,7 +66,7 @@
                     <div class="field">
                         <label class="label">Montant ($ CAD)</label>
                         <div class="control has-icons-left">
-                            <input class="input" type="number" id="montant" placeholder="Ex : 250" required>
+                            <input class="input" type="text" id="montant" placeholder="Ex : 250">
                             <span class="icon is-left"><i class="fas fa-dollar-sign"></i></span>
                         </div>
                         <p class="help is-danger" id="montant-error" style="display:none;"></p>
@@ -75,7 +78,7 @@
                     <div class="field">
                         <label class="label">Date de paiement</label>
                         <div class="control has-icons-left">
-                            <input class="input" type="date" id="date" required>
+                            <input class="input" type="date" id="date">
                             <span class="icon is-left"><i class="fas fa-calendar-alt"></i></span>
                         </div>
                         <p class="help is-danger" id="date-error" style="display:none;"></p>
@@ -90,7 +93,7 @@
                 <label class="label">Mode de paiement</label>
                 <div class="control has-icons-left">
                     <div class="select is-fullwidth">
-                    <select id="mode" required>
+                    <select id="mode">
                         <option value="">Sélectionner</option>
                         <option value="Cash">Cash</option>
                         <option value="Virement">Virement</option>
@@ -138,9 +141,10 @@
         </div>
 
     </div>
-
-    <h2 class="subtitle">Liste des paiements déjà enregistrés</h2>
-
+    
+        <h2 class="subtitle">Liste des paiements</h2>
+        
+    <div class="box">
     <table class="table is-fullwidth" id="payments-table">
         <thead>
             <tr>
@@ -161,21 +165,11 @@
         </nav>
 
 </div>
+</div>
 </section>
 
 <script src="paiements.js"></script>
 
+ 
 </body>
 </html>
-
-
-<!-- 
-Gestion des Paiements
-Pour enregistrer qu’un client a payé une partie de son prêt, vous allez dans la section Paiements.
-•	Vous choisissez le prêt concerné dans un menu déroulant.
-•	Vous saisissez le montant payé, la date, le mode (cash, virement, etc.) et une note éventuelle.
-•	Quand vous validez, le paiement est enregistré dans la base de données.
-•	Le solde du prêt est recalculé automatiquement et le statut peut changer (par exemple, de ACTIF à REMBOURSÉ).
-•	La table des paiements vous permet de voir tout l’historique des transactions.
-Chaque paiement modifie directement le tableau des prêts et le dashboard.
- -->

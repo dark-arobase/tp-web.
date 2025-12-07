@@ -1,27 +1,19 @@
-/*const username   = document.getElementById("username");
-const password  = document.getElementById("password");
 
-const submitBtn     = document.getElementById("submitBtn");
-//const form = document.getElementById("userForm")*/
-/* inscription.html  h*/
 const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
 const submitBtn = document.getElementById("submitBtn");
-// formulaire d'ajout d'utilisateur dans inscription.html
+
 const formInscription = document.getElementById("inscription-Form");
 
 const idu = document.getElementById("uId");
-/*inscription.html  b*/
 
-/* indentification.html  h*/
 const formIdentification = document.getElementById("identification-Form");
-/*indentification.html  b*/
 
 let utilisateurs = [];
 
-async function loadProducts() {
+async function loadUsers() {
   try {
-    const res = await fetch("/toutUtilisateur");
+    const res = await fetch("/alluser");
     if (!res.ok) throw new Error("Erreur chargement utilisateurs");
 
     utilisateurs = await res.json();
@@ -31,8 +23,7 @@ async function loadProducts() {
   }
 }
 
-if (formInscription) {
-  formInscription.addEventListener("submit", async (e) => {
+formInscription.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const username = usernameInput.value;
@@ -65,47 +56,23 @@ if (formInscription) {
     } catch (err) {
       console.error("Impossible d'ajouter l'utilisateur", err);
     }
-  });
-}
-
-/*
-if (formIdentification) {
-  // Prefill from localStorage if remembered
-  try {
-    const saved = JSON.parse(localStorage.getItem('rememberedCredentials') || 'null');
-    if (saved) {
-      if (usernameInput) usernameInput.value = saved.username || '';
-      if (passwordInput) passwordInput.value = saved.password || '';
-      const rememberCheckbox = document.getElementById('rememberMe');
-      if (rememberCheckbox) rememberCheckbox.checked = true;
-    }
-  } catch (err) {
-    console.warn('Error reading remembered credentials', err);
-  }
-
-  formIdentification.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const username = usernameInput.value;
-    const password = passwordInput.value;
-
-    const remember = document.getElementById('rememberMe') && document.getElementById('rememberMe').checked;
-*/
+});
 
 
+// =========================
+// CONNEXION (LOGIN) AVEC COOKIES
+// =========================
 // Identification (login) — server sets a session cookie
 if (formIdentification) {
-  // Prefill from localStorage if remembered
-  try {
-    const saved = JSON.parse(localStorage.getItem('rememberedCredentials') || 'null');
-    if (saved) {
-      if (usernameInput) usernameInput.value = saved.username || '';
-      if (passwordInput) passwordInput.value = saved.password || '';
-      const rememberCheckbox = document.getElementById('rememberMe');
-      if (rememberCheckbox) rememberCheckbox.checked = true;
-    }
-  } catch (err) {
-    console.warn('Error reading remembered credentials', err);
+  // Pré-remplir depuis les cookies si "Se souvenir de moi" était coché
+  const savedUsername = getCookie('username');
+  const savedPassword = getCookie('password');
+  
+  if (savedUsername && savedPassword) {
+    if (usernameInput) usernameInput.value = savedUsername;
+    if (passwordInput) passwordInput.value = savedPassword;
+    const rememberCheckbox = document.getElementById('rememberMe');
+    if (rememberCheckbox) rememberCheckbox.checked = true;
   }
 
   formIdentification.addEventListener("submit", async (e) => {
@@ -142,15 +109,14 @@ if (formIdentification) {
 
       console.log("Identification réussie :", data);
 
-      // Save credentials locally if user chose to be remembered
-      try {
-        if (remember) {
-          localStorage.setItem('rememberedCredentials', JSON.stringify({ username, password }));
-        } else {
-          localStorage.removeItem('rememberedCredentials');
-        }
-      } catch (err) {
-        console.warn('Failed to save remembered credentials', err);
+      // Sauvegarder les identifiants dans les cookies si "Se souvenir" est coché
+      if (remember) {
+        setCookie('username', username, 30); // 30 jours
+        setCookie('password', password, 30); // 30 jours
+      } else {
+        // Supprimer les cookies si non coché
+        deleteCookie('username');
+        deleteCookie('password');
       }
 
       // Redirection vers la page d'accueil (index.html)
@@ -167,6 +133,10 @@ if (formIdentification) {
 // Logout helper (can be called from UI)
 async function logout() {
   try {
+    // Supprimer les cookies de connexion
+    deleteCookie('username');
+    deleteCookie('password');
+    
     const res = await fetch('/logout', { method: 'POST' });
     if (res.ok) {
       window.location.href = '/login.html';

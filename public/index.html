@@ -5,30 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BES Loan Lite - Dashboard</title>
 
+    <!-- Bulma CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        
+        .client-retard {
+            margin: 4px 0;
+        }
+        .dashboard-stats {
+            margin-bottom: 2rem;
+        }
+        .dashboard-stats th, .dashboard-stats td {
+            text-align: center;
+        }
     </style>
 </head>
-
 <body>
-
     <!-- NAVBAR -->
-    <nav class="navbar is-dark">
+    <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
         <div id="menu" class="navbar-menu">
             <div class="navbar-start">
-				<a class="navbar-item" href="index.html">Dashboard</a>
-				<a class="navbar-item" href="loans.html">Prêts</a>
-				<a class="navbar-item" href="paiements.html">Paiements</a>
-				<a class="navbar-item" href="client.html">Client</a>
+                <a class="navbar-item" href="index.html" aria-current="page">Dashboard</a>
+                <a class="navbar-item" href="loans.html">Prêts</a>
+                <a class="navbar-item" href="paiements.html">Paiements</a>
+                <a class="navbar-item" href="client.html">Client</a>
             </div>
             <div class="navbar-end">
                 <div class="navbar-item">
                     <div class="buttons">
-                        <button class="button is-light" onclick="logout()">Déconnexion</button>
+                        <a class="button is-light" href="login.html">Déconnexion</a>
                     </div>
                 </div>
             </div>
@@ -38,12 +47,11 @@
     <!-- DASHBOARD -->
     <section class="section">
         <div class="container">
-
             <h1 class="title">Bienvenue dans le Dashboard</h1>
             <h2 class="subtitle">Vue d’ensemble de la situation financière</h2>
 
             <!-- TABLEAU DES STATISTIQUES -->
-            <table class="table is-fullwidth is-striped dashboard-table">
+            <table class="table is-fullwidth is-striped dashboard-stats">
                 <thead>
                     <tr>
                         <th>Prêts Actifs</th>
@@ -51,115 +59,109 @@
                         <th>Prêts en Retard</th>
                         <th>Montant Total Prêté</th>
                         <th>Montant Total Remboursé</th>
-                        <th>Client en Retard</th>
+                        <th>Clients en Retard</th>
                     </tr>
                 </thead>
-
-                <tbody id="dashboard-tbody">
-                    <!-- Données chargées par dashboard.js -->
+                <tbody>
+                    <tr>
+                        <td id="pretsActifs">0</td>
+                        <td id="pretsRembourses">0</td>
+                        <td id="pretsRetard">0</td>
+                        <td id="montantTotalPrete">0 $</td>
+                        <td id="montantTotalRembourse">0 $</td>
+                        <td id="clientsEnRetard">Aucun client en retard</td>
+                    </tr>
                 </tbody>
             </table>
 
-            <!-- DESCRIPTION -->
+            <!-- GRAPHIQUE -->
             <div class="box">
-                <p>
-                    Le Dashboard vous permet d’avoir une vue globale sur :
-                </p>
-                <br>
-                <ul>
-                    <li>• Le Nombre de prêts actifs, remboursés et en retard</li>
-                    <li>• Le Montant total prêté</li>
-                    <li>• Le Montant total remboursé</li>
-                    <li>• Les Clients en retard</li>
-                    <li>• Un Indicateur dans le menu pour signaler les retards</li>
-                </ul>
+                <h2 class="subtitle">Répartition des prêts</h2>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="loansChart"></canvas>
+                </div>
             </div>
-
         </div>
     </section>
 
-    <script src="dashboard.js"></script>
-    <script src="user.js"></script>
+    <!-- Dashboard JS -->
+    <script>
+    // Variables pour stocker les données
+    let clients = [];
+    let loans = [];
+
+    // Charger les données depuis l'API
+    async function loadData() {
+        try {
+            clients = await (await fetch('/allClients')).json();
+            loans = await (await fetch('/allLoans')).json();
+            updateDashboard();
+        } catch (err) {
+            alert("Erreur lors du chargement des données !");
+            console.error(err);
+        }
+    }
+
+    // Calculer et afficher les statistiques
+    function updateDashboard() {
+        let pretsActifs = 0;
+        let pretsRembourses = 0;
+        let pretsRetard = 0;
+        let montantTotalPrete = 0;
+        let montantTotalRembourse = 0;
+        let clientsEnRetard = [];
+
+        loans.forEach(loan => {
+            montantTotalPrete += Number(loan.montant) || 0;
+            montantTotalRembourse += (Number(loan.montant) - Number(loan.solde)) || 0;
+
+            if (loan.statut === 'ACTIF') pretsActifs++;
+            else if (loan.statut === 'REMBOURSÉ') pretsRembourses++;
+            else if (loan.statut === 'EN RETARD') {
+                pretsRetard++;
+                let client = clients.find(c => c.id === loan.client_id);
+                if(client) clientsEnRetard.push(client.prenom + " " + client.nom);
+            }
+        });
+
+        // Affichage des stats
+        document.getElementById('pretsActifs').textContent = pretsActifs;
+        document.getElementById('pretsRembourses').textContent = pretsRembourses;
+        document.getElementById('pretsRetard').textContent = pretsRetard;
+        document.getElementById('montantTotalPrete').textContent = montantTotalPrete.toFixed(2) + " $";
+        document.getElementById('montantTotalRembourse').textContent = montantTotalRembourse.toFixed(2) + " $";
+
+        // Clients en retard
+        const divRetard = document.getElementById('clientsEnRetard');
+        divRetard.innerHTML = '';
+        if (clientsEnRetard.length === 0) {
+            divRetard.textContent = "Aucun client en retard";
+        } else {
+            clientsEnRetard.forEach(name => {
+                const el = document.createElement('div');
+                el.textContent = name;
+                divRetard.appendChild(el);
+            });
+        }
+
+        // Graphique simple avec Chart.js
+        const ctx = document.getElementById('loansChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Actifs', 'Remboursés', 'En Retard'],
+                datasets: [{
+                    data: [pretsActifs, pretsRembourses, pretsRetard],
+                    backgroundColor: ['#00d1b2', '#23d160', '#ff3860']
+                }]
+            },
+            options: { responsive: true }
+        });
+    }
+
+    // Lancer le chargement des données au démarrage
+    document.addEventListener('DOMContentLoaded', loadData);
+</script>
+
 </body>
 </html>
-
-
-
-<!-- Clients 
-	<section id="view-clients" class="hidden">
-		<div class="box">
-			<h2 class="subtitle">Ajouter Client</h2>
-			<form id="formClient" class="fields">
-				<div class="field is-horizontal">
-					<div class="field-body">
-						<div class="field"><input class="input" name="first_name" placeholder="Prénom" required></div>
-						<div class="field"><input class="input" name="last_name" placeholder="Nom" required></div>
-						<div class="field"><input class="input" name="phone" placeholder="Téléphone"></div>
-						<div class="field"><input class="input" name="email" placeholder="Email"></div>
-						<div class="field"><input class="input" name="address" placeholder="Adresse"></div>
-					</div>
-				</div>
-				<button class="button is-primary is-small" type="submit">Enregistrer</button>
-			</form>
-		</div>
-		<div class="box">
-			<h2 class="subtitle">Liste Clients</h2>
-			<table class="table is-striped is-fullwidth">
-				<thead><tr><th>ID</th><th>Nom</th><th>Tél</th><th>Email</th><th>Prêts</th><th>Actions</th></tr></thead>
-				<tbody id="clientsTable"></tbody>
-			</table>
-		</div>
-	</section>
-
-	 Loans --><!-- 
-	<section id="view-loans" class="hidden">
-		<div class="box">
-			<h2 class="subtitle">Créer Prêt</h2>
-			<form id="formLoan">
-				<div class="field">
-					<div class="select is-small">
-						<select name="client_id" id="loanClientSelect" required></select>
-					</div>
-				</div>
-				<div class="field"><input class="input" name="amount" type="number" step="0.01" placeholder="Montant" required></div>
-				<div class="field"><input class="input" name="annual_rate" type="number" step="0.01" placeholder="Taux annuel (ex: 0.12)" required></div>
-				<div class="field"><input class="input" name="duration_months" type="number" placeholder="Durée (mois)" required></div>
-				<div class="field"><input class="input" name="start_date" type="date" required></div>
-				<button class="button is-primary is-small" type="submit">Créer</button>
-			</form>
-		</div>
-		<div class="box">
-			<h2 class="subtitle">Liste Prêts</h2>
-			<table class="table is-striped is-fullwidth">
-				<thead><tr><th>ID</th><th>Client</th><th>Montant</th><th>Intérêts</th><th>Solde</th><th>Statut</th></tr></thead>
-				<tbody id="loansTable"></tbody>
-			</table>
-		</div>
-	</section>
-
-	 Payments --><!-- 
-	<section id="view-payments" class="hidden">
-		<div class="box">
-			<h2 class="subtitle">Enregistrer Paiement</h2>
-			<form id="formPayment">
-				<div class="field">
-					<div class="select is-small">
-						<select name="loan_id" id="paymentLoanSelect" required></select>
-					</div>
-				</div>
-				<div class="field"><input class="input" name="amount" type="number" step="0.01" placeholder="Montant" required></div>
-				<div class="field"><input class="input" name="pay_date" type="date" required></div>
-				<div class="field"><input class="input" name="mode" placeholder="Mode (cash...)" ></div>
-				<div class="field"><input class="input" name="note" placeholder="Note" ></div>
-				<button class="button is-primary is-small" type="submit">Ajouter</button>
-			</form>
-		</div>
-		<div class="box">
-			<h2 class="subtitle">Historique Paiements</h2>
-			<table class="table is-striped is-fullwidth">
-				<thead><tr><th>ID</th><th>Prêt</th><th>Montant</th><th>Date</th><th>Mode</th></tr></thead>
-				<tbody id="paymentsTable"></tbody>
-			</table>
-		</div>
-	</section>
-	<div id="msg" class="notification is-hidden"></div>
