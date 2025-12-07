@@ -25,7 +25,8 @@ function Create-Client($suffix) {
     $attempt = 0
     while ($attempt -lt 5) {
         $attempt++
-        $phone = '438' + (Get-Date -Format 'HHmmss') + (Get-Random -Maximum 900) # quick unique
+        # Generate a 10-digit phone number starting with area code 438
+        $phone = '438' + (Get-Random -Minimum 1000000 -Maximum 9999999)
         $body = @{ nom = ("E2E$suffix"); prenom = ("User$suffix"); telephone = $phone; email = ("e2e.$suffix.$attempt@example.com"); adresse = "100 Test St" }
         $r = Invoke-PostJson '/addClient' $body
         if ($r.success) {
