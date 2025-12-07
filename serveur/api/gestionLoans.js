@@ -3,21 +3,43 @@ const router = express.Router();
 const crypto = require("crypto");
 const { db } = require("../db");
 
-// Helper calcul date limite (date de prêt + durée en mois)
+// ===============================================
+// FONCTIONS UTILES
+// ===============================================
+
+// arrondi 2 décimales
+function round2(n) {
+    return Math.round(Number(n) * 100) / 100;
+}
+
+// Date d’échéance = date du prêt + durée (mois)
 function calculateDueDate(startDate, dureeMois) {
     const d = new Date(startDate);
     d.setMonth(d.getMonth() + parseInt(dureeMois));
-    return d;
+    // Normaliser à minuit (comparaisons journée seulement)
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-// Helper calcul statut selon règle: solde=0 → REMBOURSÉ, solde>0 et date dépassée → EN RETARD, sinon ACTIF
-function calculateStatus(solde, dueDate) {
-    if (solde <= 0) return "REMBOURSÉ";
-    const today = new Date();
-        if (!(dueDate instanceof Date)) dueDate = new Date(dueDate);
-        const dueDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-        const nowDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        return dueDay.getTime() < nowDay.getTime() ? "EN RETARD" : "ACTIF";
+// Nouveau statut (prend en compte : solde, date limite, dernier paiement)
+function calculateStatus(solde, dueDate, lastPaymentDate = null) {
+    if (Number(solde) <= 0) return "REMBOURSÉ";
+
+    // normalisation jour
+    const now = new Date();
+    const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const due = dueDate instanceof Date ? new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate()) : new Date(new Date(dueDate).getFullYear(), new Date(dueDate).getMonth(), new Date(dueDate).getDate());
+
+    // Paiement en retard : last payment date (si existe) après l'échéance
+    if (lastPaymentDate) {
+        const lp = new Date(lastPaymentDate);
+        const lpDay = new Date(lp.getFullYear(), lp.getMonth(), lp.getDate());
+        if (lpDay.getTime() > due.getTime()) return "EN RETARD";
+    }
+
+    // Si échéance passée
+    if (due.getTime() < nowDay.getTime()) return "EN RETARD";
+
+    return "ACTIF";
 }
 
 // =====================================================
@@ -25,7 +47,7 @@ function calculateStatus(solde, dueDate) {
 // =====================================================
 router.get("/allLoans", async (req, res) => {
     try {
-        const loans = await db("loans")
+        let loans = await db("loans")
             .leftJoin("clients", "loans.client_id", "clients.id")
             .select(
                 "loans.*",
@@ -34,7 +56,25 @@ router.get("/allLoans", async (req, res) => {
             )
             .orderBy("loans.creer_depuis", "desc");
 
+        // On recalcul le statut AVANT d’envoyer au frontend
+        for (let loan of loans) {
+
+            const dueDate = calculateDueDate(loan.date, loan.duree);
+
+            // Récupérer le dernier paiement
+            const lastPayment = await db("paiements")
+                .where("loan_id", loan.id)
+                .orderBy("date", "desc")
+                .first();
+
+            const lastPaymentDate = lastPayment ? lastPayment.date : null;
+
+            // Recalcul du statut
+            loan.statut = calculateStatus(loan.solde, dueDate, lastPaymentDate);
+        }
+
         res.json(loans);
+
     } catch (err) {
         console.error("Erreur GET /allLoans", err);
         res.status(500).json({ error: "Erreur serveur." });
@@ -48,30 +88,20 @@ router.post("/addLoan", async (req, res) => {
     try {
         const { client_id, montant, taux, duree, date } = req.body;
 
-        // VALIDATION
-        if (!client_id) 
-            return res.status(400).json({ error: "client_id requis" });
-        if (!montant) 
-            return res.status(400).json({ error: "montant requis" });
-        if (!taux) 
-            return res.status(400).json({ error: "taux requis" });
-        if (!duree) 
-            return res.status(400).json({ error: "duree requise" });
-        if (!date) 
-            return res.status(400).json({ error: "date requise" });
+        if (!client_id || !montant || !taux || !duree || !date)
+            return res.status(400).json({ error: "Certains champs sont vides." });
 
-        // CALCUL (arrondir à 2 décimales)
-        const interets = Number((Number(montant) * (Number(taux) / 100) * (Number(duree) / 12)).toFixed(2));
-        const solde = Number((Number(montant) + interets).toFixed(2));
+        // Intérêt et solde restants (arrondis à 2 décimales)
+        const interets = round2(Number(montant) * (Number(taux) / 100) * (Number(duree) / 12));
+        const solde = round2(Number(montant) + interets);
 
-        // Calculer date limite et statut initial
         const dueDate = calculateDueDate(date, duree);
         const statut = calculateStatus(solde, dueDate);
 
         const loan = {
             id: crypto.randomUUID(),
             client_id,
-            montant: Number(Number(montant).toFixed(2)),
+            montant: Number(montant),
             taux: Number(taux),
             duree: Number(duree),
             date,
@@ -96,46 +126,51 @@ router.post("/addLoan", async (req, res) => {
 router.put("/editLoan/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        console.log("ID à modifier :", id);
         const { montant, taux, duree, date } = req.body;
 
-        // Récupérer le prêt actuel pour conserver le solde
         const oldLoan = await db("loans").where({ id }).first();
         if (!oldLoan)
             return res.status(404).json({ error: "Prêt introuvable." });
 
-        // Recalculer les intérêts avec les nouvelles valeurs
-        const interets = Number((Number(montant) * (Number(taux) / 100) * (Number(duree) / 12)).toFixed(2));
+        // Recalcul des intérêts
+        const interets = round2(Number(montant) * (Number(taux) / 100) * (Number(duree) / 12));
+        const montantTotal = round2(Number(montant) + interets);
 
-        // Calculer le nouveau montant total (montant + intérêts)
-        const montantTotal = Number((Number(montant) + interets).toFixed(2));
-        
-        // Calculer le nouveau solde en gardant la même proportion de remboursement
         const ancienMontantTotal = Number(oldLoan.montant) + Number(oldLoan.interets);
-        const proportionRemboursee = ancienMontantTotal > 0 
-            ? (ancienMontantTotal - Number(oldLoan.solde)) / ancienMontantTotal 
+
+        // Proportion déjà remboursée
+        const proportionPayee = ancienMontantTotal > 0
+            ? (ancienMontantTotal - Number(oldLoan.solde)) / ancienMontantTotal
             : 0;
-        const nouveauSolde = Number((montantTotal * (1 - proportionRemboursee)).toFixed(2));
 
-        // Déterminer le statut selon date limite
+        const nouveauSolde = Number((montantTotal * (1 - proportionPayee)).toFixed(2));
+
         const dueDate = calculateDueDate(date, duree);
-        const statut = calculateStatus(nouveauSolde, dueDate);
 
-        const updated = await db("loans").where({ id }).update({
-            montant: Number(Number(montant).toFixed(2)),
-            taux: Number(taux),
-            duree: Number(duree),
-            date,
-            interets,
-            solde: nouveauSolde,
-            statut
-        });
+        // Dernier paiement pour recalcul
+        const lastPayment = await db("paiements")
+            .where("loan_id", id)
+            .orderBy("date", "desc")
+            .first();
 
-        if (updated === 0)
-            return res.status(404).json({ error: "Prêt introuvable." });
+        const lastPaymentDate = lastPayment ? lastPayment.date : null;
 
-        const loan = await db("loans").where({ id }).first();
-        res.json(loan);
+        const statut = calculateStatus(nouveauSolde, dueDate, lastPaymentDate);
+
+        await db("loans")
+            .where({ id })
+            .update({
+                montant,
+                taux,
+                duree,
+                date,
+                interets,
+                solde: nouveauSolde,
+                statut
+            });
+
+        const updatedLoan = await db("loans").where({ id }).first();
+        res.json(updatedLoan);
 
     } catch (err) {
         console.error("Erreur PUT /editLoan/:id", err);
@@ -150,16 +185,14 @@ router.delete("/deleteLoan/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Supprimer d'abord les paiements liés à ce prêt
+        // Supprimer d’abord ses paiements
         await db("paiements").where({ loan_id: id }).del();
-        
-        // Supprimer le prêt
-        const deleted = await db("loans").where({ id }).del();
 
-        if (deleted === 0)
+        const deleted = await db("loans").where({ id }).del();
+        if (!deleted)
             return res.status(404).json({ error: "Prêt introuvable." });
 
-        res.json({ success: true, id });
+        res.json({ success: true });
 
     } catch (err) {
         console.error("Erreur DELETE /deleteLoan/:id", err);

@@ -124,11 +124,11 @@ router.post("/addPaiement", async (req, res) => {
         if (round2(totalPayes + parseFloat(montant)) > totalDu)
             return res.status(400).json({ error: "Montant dépasse le total dû !" });
 
-        // insertion
+        // insertion (assurer que montant est un nombre arrondi)
         await db("paiements").insert({
             id: crypto.randomUUID(),
             loan_id,
-            montant,
+            montant: round2(Number(montant)),
             date,
             mode,
             note
@@ -148,7 +148,9 @@ router.post("/addPaiement", async (req, res) => {
             statut: nouveauStatut
         });
 
-        res.status(201).json({ message: "Paiement ajouté", nouveauSolde, nouveauStatut });
+        const updatedLoan = await db("loans").where({ id: loan_id }).first();
+
+        res.status(201).json({ message: "Paiement ajouté", nouveauSolde, nouveauStatut, loan: updatedLoan });
 
     } catch (err) {
         console.error("Erreur POST /addPaiement", err);
@@ -178,8 +180,8 @@ router.put("/editPaiement/:id", async (req, res) => {
         if (round2(totalSansAncien + parseFloat(montant)) > totalDu)
             return res.status(400).json({ error: "Montant dépasse le total dû !" });
 
-        // maj paiement
-        await db("paiements").where({ id }).update({ montant, date, mode, note });
+        // maj paiement (arrondir montant)
+        await db("paiements").where({ id }).update({ montant: round2(Number(montant)), date, mode, note });
 
         const paiementsMaj = await db("paiements").where({ loan_id: loan.id });
         const totalMaj = paiementsMaj.reduce((s, p) => s + parseFloat(p.montant), 0);
@@ -193,7 +195,8 @@ router.put("/editPaiement/:id", async (req, res) => {
             statut: nouveauStatut
         });
 
-        res.json({ message: "Paiement modifié", nouveauSolde, nouveauStatut });
+        const updatedLoan = await db("loans").where({ id: loan.id }).first();
+        res.json({ message: "Paiement modifié", nouveauSolde, nouveauStatut, loan: updatedLoan });
 
     } catch (err) {
         console.error("Erreur PUT /editPaiement/:id", err);
@@ -227,7 +230,8 @@ router.delete("/deletePaiement/:id", async (req, res) => {
             .where({ id: loan.id })
             .update({ solde: nouveauSolde, statut: nouveauStatut });
 
-        res.json({ success: true, nouveauSolde, nouveauStatut });
+        const updatedLoan = await db("loans").where({ id: loan.id }).first();
+        res.json({ success: true, nouveauSolde, nouveauStatut, loan: updatedLoan });
 
     } catch (err) {
         console.error("Erreur DELETE /deletePaiement/:id", err);
