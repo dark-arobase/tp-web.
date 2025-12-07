@@ -3,9 +3,63 @@ const router = express.Router();
 const crypto = require("crypto");
 const { db } = require("../db");
 
-/* =====================================================================================
-    GET — Paiements d'un prêt spécifique
-===================================================================================== */
+// =====================================================
+// Helpers
+// =====================================================
+
+// arrondi
+function round2(n) {
+    return Math.round(n * 100) / 100;
+}
+
+// due date = date + durée en mois
+function calculateDueDate(startDate, dureeMois) {
+    const d = new Date(startDate);
+    d.setMonth(d.getMonth() + parseInt(dureeMois));
+    return d;
+}
+
+// -------------------------------------------------------------------
+// NOUVEAU : Calcul PRO du statut final
+// -------------------------------------------------------------------
+/*
+    Règle métier appliquée pour le statut d'un prêt après paiement :
+    - Calculer la date d'échéance = date_prêt + durée (mois)
+    - Récupérer la date du dernier paiement (fourni dans la requête)
+    - Si la date du dernier paiement > date d'échéance => statut = "EN RETARD"
+        (PRIORITAIRE, même si le prêt est remboursé ensuite)
+    - Sinon si solde > 0 => statut = "ACTIF"
+    - Sinon solde == 0 => statut = "REMBOURSÉ"
+    Cette fonction centralise la logique pour POST/PUT/DELETE paiements.
+*/
+async function calculateFinalStatus(loanId, solde, dueDate) {
+
+    // récupérer dernier paiement
+    const lastPayment = await db("paiements")
+        .where({ loan_id: loanId })
+        .orderBy("date", "desc")
+        .first();
+
+    // cas sans paiement (rare)
+    if (!lastPayment) {
+        return solde > 0 ? "ACTIF" : "REMBOURSÉ";
+    }
+
+    const lastPayDate = new Date(lastPayment.date);
+
+    // si pas encore remboursé
+    if (solde > 0) {
+        return lastPayDate > dueDate ? "EN RETARD" : "ACTIF";
+    }
+
+    // si remboursé, vérifier si en retard — nous voulons conserver le statut EN RETARD
+    // même si le prêt est payé intégralement après la date d'échéance
+    return lastPayDate > dueDate ? "EN RETARD" : "REMBOURSÉ";
+}
+
+// =====================================================
+//  GET — Paiements d'un prêt spécifique
+// =====================================================
 router.get("/paiements/:loan_id", async (req, res) => {
     try {
         const { loan_id } = req.params;
@@ -22,9 +76,9 @@ router.get("/paiements/:loan_id", async (req, res) => {
     }
 });
 
-/* =====================================================================================
-    GET — Tous les paiements
-===================================================================================== */
+// =====================================================
+//  GET — Tous les paiements
+// =====================================================
 router.get("/allPaiements", async (req, res) => {
     try {
         const paiements = await db("paiements as p")
@@ -46,32 +100,9 @@ router.get("/allPaiements", async (req, res) => {
     }
 });
 
-// Helper arrondi
-function round2(n) {
-    return Math.round(n * 100) / 100;
-}
-
-// Helper calcul date limite (date de prêt + durée en mois)
-function calculateDueDate(startDate, dureeMois) {
-    const d = new Date(startDate);
-    d.setMonth(d.getMonth() + parseInt(dureeMois));
-    return d;
-}
-
-// Helper calcul statut selon règle: solde=0 → REMBOURSÉ, solde>0 et date dépassée → EN RETARD, sinon ACTIF
-function calculateStatus(solde, dueDate) {
-    if (solde <= 0) return "REMBOURSÉ";
-    const today = new Date();
-        if (!(dueDate instanceof Date)) dueDate = new Date(dueDate);
-        const dueDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-        const nowDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        return dueDay.getTime() < nowDay.getTime() ? "EN RETARD" : "ACTIF";
-}
-
-/* =====================================================================================
-    POST — Ajouter un paiement
-===================================================================================== */
-
+// =====================================================
+// POST — Ajouter un paiement
+// =====================================================
 router.post("/addPaiement", async (req, res) => {
     try {
         const { loan_id, montant, date, mode, note } = req.body;
@@ -82,21 +113,18 @@ router.post("/addPaiement", async (req, res) => {
         const loan = await db("loans").where({ id: loan_id }).first();
         if (!loan) return res.status(404).json({ error: "Prêt introuvable." });
 
-        // On ne prend en compte que les paiements déjà effectués jusqu'à aujourd'hui
-        const today = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
-        const paiements = await db("paiements")
-            .where({ loan_id })
-            .andWhere("date", "<=", today); // Paiements passés ou aujourd'hui
+        // total dû
+        const totalDu = round2(Number(loan.montant) + Number(loan.interets));
 
-        const totalPayes = paiements.reduce((sum, p) => sum + parseFloat(p.montant), 0);
+        // anciens paiements
+        const paiementsTout = await db("paiements").where({ loan_id });
+        const totalPayes = paiementsTout.reduce((s, p) => s + parseFloat(p.montant), 0);
 
-        // Vérifier que le paiement ne dépasse pas le solde restant actuel
-            const totalDu = round2(Number(loan.montant) + Number(loan.interets));
-            if (round2(totalPayes + parseFloat(montant)) > totalDu) {
-                return res.status(400).json({ error: "Le montant dépasse le total dû pour ce prêt !" });
-        }
+        // empêcher dépassement
+        if (round2(totalPayes + parseFloat(montant)) > totalDu)
+            return res.status(400).json({ error: "Montant dépasse le total dû !" });
 
-        // Insérer le paiement
+        // insertion
         await db("paiements").insert({
             id: crypto.randomUUID(),
             loan_id,
@@ -106,19 +134,19 @@ router.post("/addPaiement", async (req, res) => {
             note
         });
 
-        // Recalcul du solde et du statut en fonction des paiements passés ou aujourd'hui
-        const paiementsMaj = await db("paiements")
-            .where({ loan_id })
-            .andWhere("date", "<=", today);
-        const totalMaj = paiementsMaj.reduce((sum, p) => sum + parseFloat(p.montant), 0);
+        // recalcul
+        const paiementsMaj = await db("paiements").where({ loan_id });
+        const totalMaj = paiementsMaj.reduce((s, p) => s + parseFloat(p.montant), 0);
+        const nouveauSolde = round2(totalDu - totalMaj);
 
-            const nouveauSolde = round2(totalDu - totalMaj);
+        // calcul échéance & statut pro
         const dueDate = calculateDueDate(loan.date, loan.duree);
-        const nouveauStatut = calculateStatus(nouveauSolde, dueDate);
+        const nouveauStatut = await calculateFinalStatus(loan_id, nouveauSolde, dueDate);
 
-        await db("loans")
-            .where({ id: loan_id })
-            .update({ solde: nouveauSolde, statut: nouveauStatut });
+        await db("loans").where({ id: loan_id }).update({
+            solde: nouveauSolde,
+            statut: nouveauStatut
+        });
 
         res.status(201).json({ message: "Paiement ajouté", nouveauSolde, nouveauStatut });
 
@@ -127,43 +155,43 @@ router.post("/addPaiement", async (req, res) => {
         res.status(500).json({ error: "Erreur serveur." });
     }
 });
-/* =====================================================================================
-    PUT — Modifier un paiement
-===================================================================================== */
+
+// =====================================================
+// PUT — Modifier un paiement
+// =====================================================
 router.put("/editPaiement/:id", async (req, res) => {
     try {
         const { id } = req.params;
         const { montant, date, mode, note } = req.body;
 
-        const oldPay = await db("paiements").where({ id }).first();
-        if (!oldPay) return res.status(404).json({ error: "Paiement introuvable." });
+        const old = await db("paiements").where({ id }).first();
+        if (!old) return res.status(404).json({ error: "Paiement introuvable." });
 
-        const loan_id = oldPay.loan_id;
-        const loan = await db("loans").where({ id: loan_id }).first();
+        const loan = await db("loans").where({ id: old.loan_id }).first();
         if (!loan) return res.status(404).json({ error: "Prêt introuvable." });
 
-        // Total dû (principal + intérêts)
         const totalDu = round2(Number(loan.montant) + Number(loan.interets));
 
-        const paiements = await db("paiements").where({ loan_id });
-        const totalPayesSansAncien = paiements.reduce((sum, p) => sum + parseFloat(p.montant), 0) - parseFloat(oldPay.montant);
+        const pai = await db("paiements").where({ loan_id: loan.id });
+        const totalSansAncien = pai.reduce((s, p) => s + parseFloat(p.montant), 0) - parseFloat(old.montant);
 
-        // Empêcher dépassement du total dû
-        if (round2(totalPayesSansAncien + parseFloat(montant)) > totalDu) {
-            return res.status(400).json({ error: "Le montant dépasse le total dû !" });
-        }
+        if (round2(totalSansAncien + parseFloat(montant)) > totalDu)
+            return res.status(400).json({ error: "Montant dépasse le total dû !" });
 
+        // maj paiement
         await db("paiements").where({ id }).update({ montant, date, mode, note });
 
-        // Recalculer à partir de tous les paiements
-        const paiementsMaj = await db("paiements").where({ loan_id });
-        const totalMaj = paiementsMaj.reduce((sum, p) => sum + parseFloat(p.montant), 0);
-
+        const paiementsMaj = await db("paiements").where({ loan_id: loan.id });
+        const totalMaj = paiementsMaj.reduce((s, p) => s + parseFloat(p.montant), 0);
         const nouveauSolde = round2(totalDu - totalMaj);
-        const dueDate = calculateDueDate(loan.date, loan.duree);
-        const nouveauStatut = calculateStatus(nouveauSolde, dueDate);
 
-        await db("loans").where({ id: loan_id }).update({ solde: nouveauSolde, statut: nouveauStatut });
+        const dueDate = calculateDueDate(loan.date, loan.duree);
+        const nouveauStatut = await calculateFinalStatus(loan.id, nouveauSolde, dueDate);
+
+        await db("loans").where({ id: loan.id }).update({
+            solde: nouveauSolde,
+            statut: nouveauStatut
+        });
 
         res.json({ message: "Paiement modifié", nouveauSolde, nouveauStatut });
 
@@ -173,9 +201,9 @@ router.put("/editPaiement/:id", async (req, res) => {
     }
 });
 
-/* =====================================================================================
-    DELETE — Supprimer un paiement
-===================================================================================== */
+// =====================================================
+// DELETE — Supprimer un paiement
+// =====================================================
 router.delete("/deletePaiement/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -184,19 +212,16 @@ router.delete("/deletePaiement/:id", async (req, res) => {
         if (!pay) return res.status(404).json({ error: "Paiement introuvable." });
 
         const loan = await db("loans").where({ id: pay.loan_id }).first();
-        if (!loan) return res.status(404).json({ error: "Prêt introuvable." });
 
-        // Total dû (principal + intérêts)
         const totalDu = round2(Number(loan.montant) + Number(loan.interets));
-
         await db("paiements").where({ id }).del();
 
-        const paiements = await db("paiements").where({ loan_id: loan.id });
-        const totalPayes = paiements.reduce((sum, p) => sum + parseFloat(p.montant), 0);
+        const paiementsMaj = await db("paiements").where({ loan_id: loan.id });
+        const totalPaye = paiementsMaj.reduce((s, p) => s + parseFloat(p.montant), 0);
+        const nouveauSolde = round2(totalDu - totalPaye);
 
-        const nouveauSolde = round2(totalDu - totalPayes);
         const dueDate = calculateDueDate(loan.date, loan.duree);
-        const nouveauStatut = calculateStatus(nouveauSolde, dueDate);
+        const nouveauStatut = await calculateFinalStatus(loan.id, nouveauSolde, dueDate);
 
         await db("loans")
             .where({ id: loan.id })
