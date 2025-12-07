@@ -61,7 +61,7 @@
                     <div class="field">
                         <label class="label">Montant ($ CAD)</label>
                         <div class="control has-icons-left">
-                            <input class="input" type="number" id="montant" placeholder="Ex : 10000">
+                            <input class="input" type="number" id="montant" step="0.01" min="0.01" placeholder="Ex : 25.32">
                             <span class="icon is-left"><i class="fas fa-dollar-sign"></i></span>
                         </div>
                         <p class="help is-danger" id="montant-error" style="display:none;"></p>
@@ -72,7 +72,7 @@
                     <div class="field">
                         <label class="label">Taux mensuel (%)</label>
                         <div class="control has-icons-left">
-                            <input class="input" type="number" id="taux" placeholder="Ex : 5">
+                            <input class="input" type="number" id="taux" step="0.01" min="0" placeholder="Ex : 5.25">
                             <span class="icon is-left"><i class="fas fa-percentage"></i></span>
                         </div>
                         <p class="help is-danger" id="taux-error" style="display:none;"></p>
@@ -85,7 +85,7 @@
                     <div class="field">
                         <label class="label">Durée (mois)</label>
                         <div class="control has-icons-left">
-                            <input class="input" type="number" id="duree" placeholder="Ex : 12">
+                            <input class="input" type="number" id="duree" step="1" min="1" placeholder="Ex : 12">
                             <span class="icon is-left"><i class="fas fa-clock"></i></span>
                         </div>
                         <p class="help is-danger" id="duree-error" style="display:none;"></p>

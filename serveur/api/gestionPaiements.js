@@ -28,6 +28,14 @@ function determineStatus(totalDu, totalAvantEcheance, totalApresPaiements, dueDa
     return nowDay.getTime() > dueDay.getTime() ? "EN RETARD" : "ACTIF";
 }
 
+function normalizeStatus(s) {
+    if (!s || typeof s !== 'string') return s;
+    if (s.includes('EN RETARD')) return 'EN RETARD';
+    if (s.includes('REMBOURSÉ')) return 'REMBOURSÉ';
+    if (s.includes('ACTIF')) return 'ACTIF';
+    return s;
+}
+
 // ----------------------------------------------------------
 // GET paiements d’un prêt
 // ----------------------------------------------------------
@@ -90,9 +98,11 @@ router.post("/addPaiement", async (req, res) => {
         const lastPayment = paiementsUpdated.length ? paiementsUpdated.reduce((a, b) => (new Date(a.date) > new Date(b.date) ? a : b)) : null;
         const lastPaymentDate = lastPayment ? lastPayment.date : null;
 
-        const statut = determineStatus(totalDu, totalAvant, totalApresPaiements, dueDate, lastPaymentDate);
+        let statut = determineStatus(totalDu, totalAvant, totalApresPaiements, dueDate, lastPaymentDate);
 
         const solde = Number((totalDu - totalApresPaiements).toFixed(2));
+
+        statut = normalizeStatus(statut);
 
         await db("loans").where({ id: loan_id }).update({ solde, statut });
 
@@ -141,8 +151,10 @@ router.put("/editPaiement/:id", async (req, res) => {
         const lastPayment = paiementsUpdated.length ? paiementsUpdated.reduce((a, b) => (new Date(a.date) > new Date(b.date) ? a : b)) : null;
         const lastPaymentDate = lastPayment ? lastPayment.date : null;
 
-        const statut = determineStatus(totalDu, totalAvant, totalApres, dueDate, lastPaymentDate);
+        let statut = determineStatus(totalDu, totalAvant, totalApres, dueDate, lastPaymentDate);
         const solde = Number((totalDu - totalApres).toFixed(2));
+
+        statut = normalizeStatus(statut);
 
         await db("loans").where({ id: loan.id }).update({ solde, statut });
 
@@ -181,8 +193,10 @@ router.delete("/deletePaiement/:id", async (req, res) => {
         const lastPayment = paiementsUpdated.length ? paiementsUpdated.reduce((a, b) => (new Date(a.date) > new Date(b.date) ? a : b)) : null;
         const lastPaymentDate = lastPayment ? lastPayment.date : null;
 
-        const statut = determineStatus(totalDu, totalAvant, totalApres, dueDate, lastPaymentDate);
+        let statut = determineStatus(totalDu, totalAvant, totalApres, dueDate, lastPaymentDate);
         const solde = Number((totalDu - totalApres).toFixed(2));
+
+        statut = normalizeStatus(statut);
 
         await db("loans").where({ id: loan.id }).update({ solde, statut });
 

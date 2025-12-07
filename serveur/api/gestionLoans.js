@@ -39,6 +39,14 @@ function determineStatus(totalDu, totalAvantEcheance, totalApresPaiements, dueDa
     return nowDay.getTime() > dueDay.getTime() ? "EN RETARD" : "ACTIF";
 }
 
+function normalizeStatus(s) {
+    if (!s || typeof s !== 'string') return s;
+    if (s.includes('EN RETARD')) return 'EN RETARD';
+    if (s.includes('REMBOURSÉ')) return 'REMBOURSÉ';
+    if (s.includes('ACTIF')) return 'ACTIF';
+    return s;
+}
+
 // -----------------------------------------------------
 // GET : tous les prêts
 // -----------------------------------------------------
@@ -128,9 +136,11 @@ router.put("/editLoan/:id", async (req, res) => {
         const lastPayment = paiements.length ? paiements.reduce((a, b) => (new Date(a.date) > new Date(b.date) ? a : b)) : null;
         const lastPaymentDate = lastPayment ? lastPayment.date : null;
 
-        const statut = determineStatus(totalDu, totalAvant, totalApres, dueDateObj, lastPaymentDate);
+        let statut = determineStatus(totalDu, totalAvant, totalApres, dueDateObj, lastPaymentDate);
 
         const solde = Number((totalDu - totalApres).toFixed(2));
+
+        statut = normalizeStatus(statut);
 
         await db("loans").where({ id }).update({
             montant: m,
