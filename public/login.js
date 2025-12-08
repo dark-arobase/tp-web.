@@ -7,9 +7,7 @@ const passwordError = document.getElementById("password-error");
 const rememberCheckbox = document.getElementById("rememberMe");
 const formIdentification = document.getElementById("identification-Form");
 
-// =========================
-// COOKIE HELPERS
-// =========================
+
 function setCookie(name, value, days) {
     const date = new Date();
     date.setTime(date.getTime() + (days*24*60*60*1000));
@@ -30,27 +28,27 @@ function getCookie(name) {
 }
 
 
-// Charger cookies au chargement page
 function chargerDonneesDepuisCookies() {
   const savedUsername = getCookie("username");
   const savedPassword = getCookie("password");
 
-  if (savedUsername) usernameInput.value = savedUsername;
-  if (savedPassword) passwordInput.value = savedPassword;
+  if (savedUsername) 
+    usernameInput.value = savedUsername;
+  if (savedPassword) 
+    passwordInput.value = savedPassword;
 
-  if (savedUsername || savedPassword) rememberCheckbox.checked = true;
+  if (savedUsername || savedPassword) 
+    rememberCheckbox.checked = true;
 }
 
 chargerDonneesDepuisCookies();
 
-// Validation en temps réel
 [usernameInput, passwordInput].forEach(input => {
   input.addEventListener("input", () => {
     clearFieldError(input, input === usernameInput ? usernameError : passwordError);
   });
 });
 
-// Fonctions erreurs
 function showFieldError(input, errorElem, message) {
   input.classList.add("is-danger");
   errorElem.style.display = "block";
@@ -63,13 +61,12 @@ function clearFieldError(input, errorElem) {
   errorElem.textContent = "";
 }
 
-// Gestion formulaire login
 if (formIdentification) {
   formIdentification.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const username = usernameInput.value.trim();
-    const password = passwordInput.value.trim();
+    const username = usernameInput.value;
+    const password = passwordInput.value;
     const remember = rememberCheckbox.checked;
 
     let hasError = false;
@@ -100,7 +97,7 @@ if (formIdentification) {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        if (data.error && data.error.toLowerCase().includes("utilisateur")) {
+        if (data.error && data.error.includes("utilisateur")) {
           showFieldError(usernameInput, usernameError, data.error);
         } else {
           showFieldError(passwordInput, passwordError, data.error || "Erreur d'identification");
@@ -110,13 +107,11 @@ if (formIdentification) {
 
       console.log("Identification réussie :", data);
 
-      // Gestion des cookies selon la case "Se souvenir de moi"
       if (remember) {
-        // Sauvegarder les cookies pour 30 jours
+
         setCookie("username", username, 30);
         setCookie("password", password, 30);
       }
-      // Si remember n'est pas coché, on ne fait rien (on garde les cookies existants si présents)
 
       window.location.href = "/index.html";
 

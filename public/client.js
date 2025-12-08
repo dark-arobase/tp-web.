@@ -46,52 +46,47 @@ cancelClientEdit.style.display = "none";
 
 
 function showFieldError(input, errorElem, message) {
-    if (input) input.classList.add("is-danger");
-    if (errorElem) {
-        errorElem.textContent = message || "";
-        errorElem.style.display = "block";
-    }
+  input.classList.add("is-danger");
+  errorElem.style.display = "block";
+  errorElem.textContent = message;
 }
 
 function clearFieldError(input, errorElem) {
-    if (input) input.classList.remove("is-danger");
-    if (errorElem) {
-        errorElem.textContent = "";
-        errorElem.style.display = "none";
-    }
+  input.classList.remove("is-danger");
+  errorElem.style.display = "none";
+  errorElem.textContent = "";
 }
 
+
 nomClient.addEventListener("input", () => {
-  if (nomClient.value.trim()) {
+  if (nomClient.value) {
     clearFieldError(nomClient, errorNomClient);
   }
 });
 prenomClient.addEventListener("input", () => {
-  if (prenomClient.value.trim()) {
+  if (prenomClient.value) {
     clearFieldError(prenomClient, errorPrenomClient);
   }
 });
 telephoneClient.addEventListener("input", () => {
-  if (telephoneClient.value.trim()) {
+  if (telephoneClient.value) {
     clearFieldError(telephoneClient, errorTelephoneClient);
   }
 }); 
 emailClient.addEventListener("input", () => {
-  if (emailClient.value.trim()) {
+  if (emailClient.value) {
     clearFieldError(emailClient, errorEmailClient);
   }
 });
 adresseClient.addEventListener("input", () => {
-  if (adresseClient.value.trim()) {
+  if (adresseClient.value) {
     clearFieldError(adresseClient, errorAdresseClient);
   }
 });
 
 
 
-// =========================
-// RENDU TABLEAU
-// =========================
+
 function renderClients(list = filteredClients) {
         clientsTableBody.innerHTML = "";
 
@@ -128,46 +123,66 @@ function renderClients(list = filteredClients) {
 // TRI
 // =========================
 function sortClients(column) {
+
+    // 1. Gérer le changement de direction (ASC ↔ DESC)
     if (sortColumn === column) {
-        // si on clique deux fois -> on inverse le sens
         sortDirection = sortDirection === "asc" ? "desc" : "asc";
     } else {
         sortColumn = column;
-        sortDirection = "asc";
+        sortDirection = "asc"; // nouvelle colonne → tri ascendant
     }
 
+    // 2. Déterminer comment comparer selon la colonne
     filteredClients.sort((a, b) => {
+
         let valA, valB;
 
-        if (column === "nom") {
-            // nom complet
-            valA = (a.prenom + " " + a.nom).toLowerCase();
-            valB = (b.prenom + " " + b.nom).toLowerCase();
-        } else if (column === "loan_count") {
-            valA = Number(a.loan_count || 0);
-            valB = Number(b.loan_count || 0);
-        } else {
-            valA = String(a[column] || "").toLowerCase();
-            valB = String(b[column] || "").toLowerCase();
+        switch (column) {
+
+            // Tri par nom complet
+            case "nom":
+                valA = `${a.prenom} ${a.nom}`.toLowerCase();
+                valB = `${b.prenom} ${b.nom}`.toLowerCase();
+                break;
+
+            // Tri par nombre de prêts
+            case "loan_count":
+                valA = Number(a.loan_count || 0);
+                valB = Number(b.loan_count || 0);
+                break;
+
+            // Par défaut → conversion texte classique
+            default:
+                valA = String(a[column] || "").toLowerCase();
+                valB = String(b[column] || "").toLowerCase();
+                break;
         }
 
+        // 3. Comparaison finale
         if (valA < valB) return sortDirection === "asc" ? -1 : 1;
         if (valA > valB) return sortDirection === "asc" ? 1 : -1;
         return 0;
     });
 
+    // 4. Mise à jour de l'affichage
     currentPage = 1;
     paginate();
     updateSortIcons();
 }
 
+
+// =========================
+// Icônes de tri (visuel UX)
+// =========================
 function updateSortIcons() {
-    const headers = document.querySelectorAll(".sort-link");
-    headers.forEach(th => {
+    document.querySelectorAll(".sort-link").forEach(th => {
+
         const col = th.dataset.column;
         const icon = th.querySelector(".sort-icon");
+
         if (!icon) return;
 
+        // Affiche l’icône seulement sur la colonne triée
         if (col === sortColumn) {
             icon.textContent = sortDirection === "asc" ? "▲" : "▼";
         } else {
@@ -176,63 +191,91 @@ function updateSortIcons() {
     });
 }
 
+
 // =========================
 // PAGINATION
 // =========================
 function paginate() {
     const start = (currentPage - 1) * clientsPerPage;
     const end = start + clientsPerPage;
-    const pageList = filteredClients.slice(start, end);
-    renderClients(pageList);
+
+    const pageItems = filteredClients.slice(start, end);
+
+    renderClients(pageItems);
     renderPagination();
 }
 
+
+// =========================
+// Rendu des boutons de pagination
+// =========================
 function renderPagination() {
+
     if (!paginationContainer) return;
 
     paginationContainer.innerHTML = "";
 
     const totalPages = Math.ceil(filteredClients.length / clientsPerPage);
-    if (totalPages <= 1) return;
+    if (totalPages <= 1) return; // inutile de paginer si 1 seule page
 
-    // bouton précédent
-    const prevBtn = document.createElement("button");
-    prevBtn.className = "button is-small";
-    prevBtn.textContent = "« Précédent";
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.addEventListener("click", () => {
-        if (currentPage > 1) {
-            currentPage--;
-            paginate();
-        }
+
+    // -----------------------------
+    // BOUTON : PAGE PRÉCÉDENTE
+    // -----------------------------
+    const prevBtn = createPaginationButton("« Précédent", currentPage > 1, () => {
+        currentPage--;
+        paginate();
     });
     paginationContainer.appendChild(prevBtn);
 
-    // boutons numérotés
-    for (let i = 1; i <= totalPages; i++) {
-        const pageBtn = document.createElement("button");
-        pageBtn.className = "button is-small" + (i === currentPage ? " is-primary" : "");
-        pageBtn.textContent = i;
-        pageBtn.addEventListener("click", () => {
-            currentPage = i;
+
+    // -----------------------------
+    // BOUTONS NUMÉROTÉS
+    // -----------------------------
+    for (let page = 1; page <= totalPages; page++) {
+
+        const isActive = page === currentPage;
+
+        const btn = createPaginationButton(page, true, () => {
+            currentPage = page;
             paginate();
         });
-        paginationContainer.appendChild(pageBtn);
+
+        if (isActive) btn.classList.add("is-primary");
+
+        paginationContainer.appendChild(btn);
     }
 
-    // bouton suivant
-    const nextBtn = document.createElement("button");
-    nextBtn.className = "button is-small";
-    nextBtn.textContent = "Suivant »";
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.addEventListener("click", () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            paginate();
-        }
+
+    // -----------------------------
+    // BOUTON : PAGE SUIVANTE
+    // -----------------------------
+    const nextBtn = createPaginationButton("Suivant »", currentPage < totalPages, () => {
+        currentPage++;
+        paginate();
     });
     paginationContainer.appendChild(nextBtn);
 }
+
+
+// =========================
+// FACTORY : Crée un bouton
+// =========================
+function createPaginationButton(text, enabled, onClick) {
+
+    const btn = document.createElement("button");
+    btn.className = "button is-small";
+    btn.textContent = text;
+
+    btn.disabled = !enabled;
+
+    if (enabled) {
+        btn.addEventListener("click", onClick);
+    }
+
+    return btn;
+}
+
 
 // Charger les clients depuis le serveur
 async function loadClients() {
@@ -257,10 +300,10 @@ async function loadClients() {
 // RECHERCHE LIVE
 // =========================
 searchInput.addEventListener("input", () => {
-    const term = searchInput.value.trim().toLowerCase();
+    const term = searchInput.value;
     filteredClients = clients.filter(c =>
         [c.prenom, c.nom, c.email, c.telephone, c.adresse]
-        .map(v => (v || "").toLowerCase())
+        .map(v => (v || ""))
         .some(v => v.includes(term))
     );
     currentPage = 1;
@@ -380,7 +423,10 @@ clientsTableBody.addEventListener('click', async (e) => {
         if (editBtn) {
             const id = editBtn.dataset.edit;
             const client = clients.find(c => String(c.id) === String(id));
-            if (!client) return;
+            if (!client) {
+                showError("Client introuvable pour modification");
+                return;
+            }
 
             idClient.value = client.id;
             nomClient.value = client.nom;
@@ -389,7 +435,7 @@ clientsTableBody.addEventListener('click', async (e) => {
             emailClient.value = client.email;
             adresseClient.value = client.adresse;
             
-            showSuccess("Client chargé pour modification");
+            showSuccess("Client modifié avec succès");
             submitClientBtn.textContent = 'Enregistrer';
             cancelClientEdit.style.display = 'inline-flex';
             

@@ -17,8 +17,8 @@ const formInscription = document.getElementById("inscription-Form");
 formInscription.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const username = usernameInput.value.trim();
-  const password = passwordInput.value.trim();
+  const username = usernameInput.value;
+  const password = passwordInput.value;
 
   let hasError = false;
 
@@ -57,7 +57,6 @@ formInscription.addEventListener("submit", async (e) => {
     alert("Compte créé avec succès !");
     formInscription.reset();
 
-    // Redirection après succès
     window.location.href = "/login.html";
 
   } catch (err) {

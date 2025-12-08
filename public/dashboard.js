@@ -1,27 +1,33 @@
 let loans = [];
 let clients = [];
 let paiements = [];
+
+// Toutes les stats regroupées
 let stats = {
-    preetsActifs: 0,
-    preetsRembourses: 0,
-    preetsEnRetard: 0,
+    pretsActifs: 0,
+    pretsRembourses: 0,
+    pretsRetard: 0,
     montantTotalPrete: 0,
     montantTotalRembourse: 0,
     clientsEnRetard: []
 };
 
-let loansChart;
+let loansChart; // Chart.js instance
 
 // =====================================================
-// Charger toutes les données
+// CHARGEMENT GLOBAL (clients + prêts + paiements)
 // =====================================================
 async function loadAllData() {
     try {
         const [resClients, resLoans, resPaiements] = await Promise.all([
-            fetch('/allClients'),
-            fetch('/allLoans'),
-            fetch('/allPaiements')
+            fetch("/allClients"),
+            fetch("/allLoans"),
+            fetch("/allPaiements")
         ]);
+
+        if (!resClients.ok || !resLoans.ok || !resPaiements.ok) {
+            return showError("Erreur de chargement des données");
+        }
 
         clients = await resClients.json();
         loans = await resLoans.json();
@@ -29,20 +35,23 @@ async function loadAllData() {
 
         calculateStats();
         renderDashboard();
-    } catch(err) {
+
+    } catch (err) {
         console.error(err);
-        showError('Erreur de chargement des données');
+        showError("Impossible de charger le tableau de bord");
     }
 }
 
 // =====================================================
-// Calcul des stats
+// CALCUL DES STATISTIQUES
 // =====================================================
 function calculateStats() {
+
+    // Reset
     stats = {
-        preetsActifs: 0,
-        preetsRembourses: 0,
-        preetsEnRetard: 0,
+        pretsActifs: 0,
+        pretsRembourses: 0,
+        pretsRetard: 0,
         montantTotalPrete: 0,
         montantTotalRembourse: 0,
         clientsEnRetard: []
@@ -51,85 +60,155 @@ function calculateStats() {
     const today = new Date();
 
     loans.forEach(loan => {
-        stats.montantTotalPrete += Number(loan.montant) || 0;
-        if(loan.statut === 'ACTIF') stats.preetsActifs++;
-        else if(loan.statut === 'REMBOURSÉ') stats.preetsRembourses++;
-        else if(loan.statut === 'EN RETARD') stats.preetsEnRetard++;
 
-        if(loan.statut === 'EN RETARD') {
-            const client = clients.find(c => c.id === loan.client_id);
-            stats.clientsEnRetard.push({
-                nom: client ? `${client.prenom} ${client.nom}` : 'Inconnu'
-            });
+        const montantInitial = Number(loan.montant) || 0;
+        const interets = Number(loan.interets) || 0;
+        const solde = Number(loan.solde) || 0;
+
+        // Montant total prêté
+        stats.montantTotalPrete += montantInitial;
+
+        // Statut
+        switch (loan.statut) {
+
+            case "ACTIF":
+                stats.pretsActifs++;
+                break;
+
+            case "REMBOURSÉ":
+                stats.pretsRembourses++;
+                break;
+
+            case "EN RETARD":
+                stats.pretsRetard++;
+
+                const client = clients.find(c => c.id === loan.client_id);
+
+                // Calcul des jours de retard
+                const dueDate = new Date(loan.date);
+                dueDate.setMonth(dueDate.getMonth() + Number(loan.duree));
+
+                const diffTime = today - dueDate;
+                const joursRetard = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                stats.clientsEnRetard.push({
+                    nom: client ? `${client.prenom} ${client.nom}` : "Client inconnu",
+                    jours: joursRetard
+                });
+                break;
         }
-        stats.montantTotalRembourse += Number(loan.montant) - Number(loan.solde);
+
+        // Montant remboursé total = (montant + intérêts) - solde
+        stats.montantTotalRembourse += (montantInitial + interets) - solde;
     });
+
+    // Arrondis propres
+    stats.montantTotalPrete = Number(stats.montantTotalPrete.toFixed(2));
+    stats.montantTotalRembourse = Number(stats.montantTotalRembourse.toFixed(2));
 }
 
 // =====================================================
-// Affichage dashboard
+// AFFICHAGE DASHBOARD
 // =====================================================
 function renderDashboard() {
-    document.getElementById('pretsActifs').textContent = stats.preetsActifs;
-    document.getElementById('pretsRembourses').textContent = stats.preetsRembourses;
-    document.getElementById('pretsRetard').textContent = stats.preetsEnRetard;
-    document.getElementById('montantTotalPrete').textContent = stats.montantTotalPrete.toFixed(2) + ' $';
-    document.getElementById('montantTotalRembourse').textContent = stats.montantTotalRembourse.toFixed(2) + ' $';
 
+    // Cartes
+    document.getElementById("pretsActifs").textContent = stats.pretsActifs;
+    document.getElementById("pretsRembourses").textContent = stats.pretsRembourses;
+    document.getElementById("pretsRetard").textContent = stats.pretsRetard;
+
+    document.getElementById("montantTotalPrete").textContent =
+        stats.montantTotalPrete.toFixed(2) + " $";
+
+    document.getElementById("montantTotalRembourse").textContent =
+        stats.montantTotalRembourse.toFixed(2) + " $";
+
+    // ================================
+    // Pastille rouge dans le menu
+    // ================================
+    const badge = document.getElementById("badgeRetard");
+    if (badge) badge.textContent = stats.pretsRetard;
+
+    // ================================
     // Graphique
-    const canvas = document.getElementById('loansChart');
-    // ensure canvas exists
+    // ================================
+    const canvas = document.getElementById("loansChart");
+
     if (canvas) {
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
+
         if (loansChart) loansChart.destroy();
+
         loansChart = new Chart(ctx, {
-            type: 'doughnut',
+            type: "doughnut",
             data: {
-                labels: ['Actifs', 'Remboursés', 'En Retard'],
+                labels: ["Actifs", "Remboursés", "En Retard"],
                 datasets: [{
-                    data: [stats.preetsActifs, stats.preetsRembourses, stats.preetsEnRetard],
-                    backgroundColor: ['#00d1b2', '#23d160', '#ff3860']
+                    data: [
+                        stats.pretsActifs,
+                        stats.pretsRembourses,
+                        stats.pretsRetard
+                    ],
+                    backgroundColor: ["#00d1b2", "#23d160", "#ff3860"]
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom' } }
+                plugins: {
+                    legend: { position: "bottom" }
+                }
             }
         });
     }
 
-    // Clients en retard
-    const div = document.getElementById('clientsEnRetard');
-    if(stats.clientsEnRetard.length === 0) {
-        div.textContent = 'Aucun client en retard';
+    // ================================
+    // Liste des clients en retard
+    // ================================
+    const div = document.getElementById("clientsEnRetard");
+
+    if (stats.clientsEnRetard.length === 0) {
+        div.textContent = "Aucun client en retard 👍";
     } else {
-        div.innerHTML = '';
+        div.innerHTML = "";
+
         stats.clientsEnRetard.forEach(c => {
-            const el = document.createElement('div');
-            el.className = 'client-retard';
-            el.innerHTML = `<i class="fas fa-user-times has-text-danger"></i> ${c.nom}`;
+            const el = document.createElement("div");
+            el.className = "client-retard";
+
+            el.innerHTML = `
+                <i class="fas fa-user-times has-text-danger"></i>
+                ${c.nom} — <strong>${c.jours} jours de retard</strong>
+            `;
             div.appendChild(el);
         });
     }
 }
 
 // =====================================================
-// Notifications
+// Notification simple
 // =====================================================
 function showError(msg) {
-    const notification = document.createElement('div');
-    notification.className = 'notification is-danger';
-    notification.textContent = msg;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
+    const el = document.createElement("div");
+    el.className = "notification is-danger";
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
 }
 
 // =====================================================
-// Init
+// Bouton “Rafraîchir”
 // =====================================================
-if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', loadAllData);
+const refreshBtn = document.getElementById("refreshDashboard");
+if (refreshBtn) {
+    refreshBtn.addEventListener("click", loadAllData);
+}
+
+// =====================================================
+// Lancement auto au chargement
+// =====================================================
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadAllData);
 } else {
     loadAllData();
 }

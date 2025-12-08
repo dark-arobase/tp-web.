@@ -30,7 +30,7 @@
         <div id="menu" class="navbar-menu">
             <div class="navbar-start">
                 <a class="navbar-item" href="index.html" aria-current="page">Dashboard</a>
-                <a class="navbar-item" href="loans.html">Prêts</a>
+                <a class="navbar-item" href="loans.html">Prêts <span id="retardBadge" class="tag is-danger" style="display:none; margin-left:6px;">0</span></a>
                 <a class="navbar-item" href="paiements.html">Paiements</a>
                 <a class="navbar-item" href="client.html">Client</a>
             </div>
@@ -74,6 +74,10 @@
                 </tbody>
             </table>
 
+            <div style="margin-bottom:1rem;">
+                <button id="refreshBtn" class="button is-info">Mettre à jour</button>
+            </div>
+
             <!-- GRAPHIQUE -->
             <div class="box">
                 <h2 class="subtitle">Répartition des prêts</h2>
@@ -85,83 +89,7 @@
     </section>
 
     <!-- Dashboard JS -->
-    <script>
-    // Variables pour stocker les données
-    let clients = [];
-    let loans = [];
-
-    // Charger les données depuis l'API
-    async function loadData() {
-        try {
-            clients = await (await fetch('/allClients')).json();
-            loans = await (await fetch('/allLoans')).json();
-            updateDashboard();
-        } catch (err) {
-            alert("Erreur lors du chargement des données !");
-            console.error(err);
-        }
-    }
-
-    // Calculer et afficher les statistiques
-    function updateDashboard() {
-        let pretsActifs = 0;
-        let pretsRembourses = 0;
-        let pretsRetard = 0;
-        let montantTotalPrete = 0;
-        let montantTotalRembourse = 0;
-        let clientsEnRetard = [];
-
-        loans.forEach(loan => {
-            montantTotalPrete += Number(loan.montant) || 0;
-            montantTotalRembourse += (Number(loan.montant) - Number(loan.solde)) || 0;
-
-            if (loan.statut === 'ACTIF') pretsActifs++;
-            else if (loan.statut === 'REMBOURSÉ') pretsRembourses++;
-            else if (loan.statut === 'EN RETARD') {
-                pretsRetard++;
-                let client = clients.find(c => c.id === loan.client_id);
-                if(client) clientsEnRetard.push(client.prenom + " " + client.nom);
-            }
-        });
-
-        // Affichage des stats
-        document.getElementById('pretsActifs').textContent = pretsActifs;
-        document.getElementById('pretsRembourses').textContent = pretsRembourses;
-        document.getElementById('pretsRetard').textContent = pretsRetard;
-        document.getElementById('montantTotalPrete').textContent = montantTotalPrete.toFixed(2) + " $";
-        document.getElementById('montantTotalRembourse').textContent = montantTotalRembourse.toFixed(2) + " $";
-
-        // Clients en retard
-        const divRetard = document.getElementById('clientsEnRetard');
-        divRetard.innerHTML = '';
-        if (clientsEnRetard.length === 0) {
-            divRetard.textContent = "Aucun client en retard";
-        } else {
-            clientsEnRetard.forEach(name => {
-                const el = document.createElement('div');
-                el.textContent = name;
-                divRetard.appendChild(el);
-            });
-        }
-
-        // Graphique simple avec Chart.js
-        const ctx = document.getElementById('loansChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Actifs', 'Remboursés', 'En Retard'],
-                datasets: [{
-                    data: [pretsActifs, pretsRembourses, pretsRetard],
-                    backgroundColor: ['#00d1b2', '#23d160', '#ff3860']
-                }]
-            },
-            options: { responsive: true }
-        });
-    }
-
-    // Lancer le chargement des données au démarrage
-    document.addEventListener('DOMContentLoaded', loadData);
-</script>
+    <script src="dashboard.js"></script>
 
 </body>
 </html>
