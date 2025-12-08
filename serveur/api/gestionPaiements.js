@@ -3,78 +3,64 @@ const router = express.Router();
 const crypto = require("crypto");
 const { db } = require("../db");
 
-// Helpers
-function calculateDueDate(startDate, dureeMois) {
-    const d = new Date(startDate);
-    d.setMonth(d.getMonth() + parseInt(dureeMois));
-    return d;
-}
-
-function determineStatus(totalDu, totalAvantEcheance, totalApresPaiements, dueDateObj, lastPaymentDate = null) {
-
-    const dueDay = new Date(dueDateObj.getFullYear(), dueDateObj.getMonth(), dueDateObj.getDate());
-    const today = new Date();
-    const nowDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-    if (Number(totalApresPaiements) >= Number(totalDu)) {
-        if (lastPaymentDate) {
-            const lp = new Date(lastPaymentDate);
-            const lpDay = new Date(lp.getFullYear(), lp.getMonth(), lp.getDate());
-            return lpDay.getTime() > dueDay.getTime() ? "EN RETARD" : "REMBOURSÉ";
-        }
-        return Number(totalAvantEcheance) >= Number(totalDu) ? "REMBOURSÉ" : "EN RETARD";
-    }
-
-    return nowDay.getTime() > dueDay.getTime() ? "EN RETARD" : "ACTIF";
-}
-
-function normalizeStatus(s) {
-    if (!s || typeof s !== 'string') return s;
-    if (s.includes('EN RETARD')) return 'EN RETARD';
-    if (s.includes('REMBOURSÉ')) return 'REMBOURSÉ';
-    if (s.includes('ACTIF')) return 'ACTIF';
-    return s;
-}
-
-// ----------------------------------------------------------
-// GET paiements d’un prêt
-// ----------------------------------------------------------
+/* ============================================================
+    GET — Paiements d'un prêt spécifique
+    Route : /paiements/:loan_id
+============================================================ */
 router.get("/paiements/:loan_id", async (req, res) => {
     try {
+        const { loan_id } = req.params;
+
         const paiements = await db("paiements")
-            .where({ loan_id: req.params.loan_id })
+            .where({ loan_id })
             .orderBy("date", "desc");
 
-        res.json(paiements);
+        res.status(200).json(paiements);
 
     } catch (err) {
-        res.status(500).json({ error: "Erreur serveur" });
+        console.error("Erreur GET /paiements/:loan_id", err);
+        res.status(500).json({ error: "Erreur serveur." });
     }
 });
 
-// ----------------------------------------------------------
-// POST : ajouter un paiement
-// ----------------------------------------------------------
+
+/* ============================================================
+    GET — Tous les paiements (clients + prêts)
+    Route : /allPaiements
+============================================================ */
+router.get("/allPaiements", async (req, res) => {
+    try {
+        const paiements = await db("paiements as p")
+            .leftJoin("loans as l", "p.loan_id", "l.id")
+            .leftJoin("clients as c", "l.client_id", "c.id")
+            .select(
+                "p.*",
+                "c.prenom",
+                "c.nom",
+                "l.solde as soldePret"
+            )
+            .orderBy("p.date", "desc");
+
+        res.status(200).json(paiements);
+
+    } catch (err) {
+        console.error("Erreur GET /allPaiements", err);
+        res.status(500).json({ error: "Erreur serveur." });
+    }
+});
+
+
+/* ============================================================
+    POST — Ajouter un paiement
+    Route : /addPaiement
+============================================================ */
 router.post("/addPaiement", async (req, res) => {
     try {
         const { loan_id, montant, date, mode, note } = req.body;
 
         if (!loan_id || !montant || !date || !mode)
-            return res.status(400).json({ error: "Champs manquants" });
+            return res.status(400).json({ error: "Champs manquants." });
 
-        const loan = await db("loans").where({ id: loan_id }).first();
-        if (!loan) return res.status(404).json({ error: "Prêt introuvable" });
-
-        const totalDu = Number(loan.montant) + Number(loan.interets);
-
-        // Paiements existants
-        const paiements = await db("paiements").where({ loan_id });
-        const totalApres = paiements.reduce((s, p) => s + Number(p.montant), 0);
-
-        if (totalApres + Number(montant) > totalDu)
-            return res.status(400).json({ error: "Paiement dépasse le total dû" });
-
-        // Ajout
         await db("paiements").insert({
             id: crypto.randomUUID(),
             loan_id,
@@ -84,126 +70,102 @@ router.post("/addPaiement", async (req, res) => {
             note
         });
 
-        // Recalcul
-        const paiementsUpdated = await db("paiements").where({ loan_id });
+        // Mettre à jour solde
+        const loan = await db("loans").where({ id: loan_id }).first();
 
-        const totalApresPaiements = paiementsUpdated.reduce((s, p) => s + Number(p.montant), 0);
-        const dueDate = calculateDueDate(loan.date, loan.duree);
+        const nouveauSolde = parseFloat(loan.solde) - parseFloat(montant);
+        const nouveauStatut = nouveauSolde <= 0 ? "REMBOURSÉ" : "ACTIF";
 
-        const totalAvant = paiementsUpdated
-            .filter(p => p.date <= dueDate.toISOString().split("T")[0])
-            .reduce((s, p) => s + Number(p.montant), 0);
+        await db("loans")
+            .where({ id: loan_id })
+            .update({ solde: nouveauSolde, statut: nouveauStatut });
 
-        // dernier paiement
-        const lastPayment = paiementsUpdated.length ? paiementsUpdated.reduce((a, b) => (new Date(a.date) > new Date(b.date) ? a : b)) : null;
-        const lastPaymentDate = lastPayment ? lastPayment.date : null;
-
-        let statut = determineStatus(totalDu, totalAvant, totalApresPaiements, dueDate, lastPaymentDate);
-
-        const solde = Number((totalDu - totalApresPaiements).toFixed(2));
-
-        statut = normalizeStatus(statut);
-
-        await db("loans").where({ id: loan_id }).update({ solde, statut });
-
-        res.json({ success: true, solde, statut });
+        res.status(201).json({ message: "Paiement ajouté", nouveauSolde, nouveauStatut });
 
     } catch (err) {
-        res.status(500).json({ error: "Erreur serveur" });
+        console.error("Erreur POST /addPaiement", err);
+        res.status(500).json({ error: "Erreur serveur." });
     }
 });
 
-// ----------------------------------------------------------
-// PUT : modifier un paiement
-// ----------------------------------------------------------
+
+/* ============================================================
+    PUT — Modifier un paiement
+    Route : /editPaiement/:id
+============================================================ */
 router.put("/editPaiement/:id", async (req, res) => {
     try {
-        const { montant, date, mode, note } = req.body;
-        const id = req.params.id;
+        const { id } = req.params;
+        const { montant, date, mode, note, loan_id } = req.body;
 
+        // ancien paiement
         const oldPay = await db("paiements").where({ id }).first();
-        if (!oldPay) return res.status(404).json({ error: "Paiement introuvable" });
+        if (!oldPay) return res.status(404).json({ error: "Paiement introuvable." });
 
-        const loan = await db("loans").where({ id: oldPay.loan_id }).first();
-        if (!loan) return res.status(404).json({ error: "Prêt introuvable" });
+        // prêt lié
+        const loan = await db("loans").where({ id: loan_id }).first();
+        if (!loan) return res.status(404).json({ error: "Prêt introuvable." });
 
-        const totalDu = Number(loan.montant) + Number(loan.interets);
+        // Recalcul solde
+        const soldeRecalcule =
+            parseFloat(loan.solde) +
+            parseFloat(oldPay.montant) -
+            parseFloat(montant);
 
-        const paiements = await db("paiements").where({ loan_id: loan.id });
+        const nouveauStatut = soldeRecalcule <= 0 ? "REMBOURSÉ" : "ACTIF";
 
-        const totalSansAncien = paiements.reduce((s, p) => s + Number(p.montant), 0) - Number(oldPay.montant);
+        // update paiement
+        await db("paiements")
+            .where({ id })
+            .update({ montant, date, mode, note });
 
-        if (totalSansAncien + Number(montant) > totalDu)
-            return res.status(400).json({ error: "Paiement dépasse total dû" });
+        // update loan
+        await db("loans")
+            .where({ id: loan_id })
+            .update({ solde: soldeRecalcule, statut: nouveauStatut });
 
-        await db("paiements").where({ id }).update({ montant, date, mode, note });
-
-        const paiementsUpdated = await db("paiements").where({ loan_id: loan.id });
-
-        const totalApres = paiementsUpdated.reduce((s, p) => s + Number(p.montant), 0);
-
-        const dueDate = calculateDueDate(loan.date, loan.duree);
-
-        const totalAvant = paiementsUpdated
-            .filter(p => p.date <= dueDate.toISOString().split("T")[0])
-            .reduce((s, p) => s + Number(p.montant), 0);
-
-        const lastPayment = paiementsUpdated.length ? paiementsUpdated.reduce((a, b) => (new Date(a.date) > new Date(b.date) ? a : b)) : null;
-        const lastPaymentDate = lastPayment ? lastPayment.date : null;
-
-        let statut = determineStatus(totalDu, totalAvant, totalApres, dueDate, lastPaymentDate);
-        const solde = Number((totalDu - totalApres).toFixed(2));
-
-        statut = normalizeStatus(statut);
-
-        await db("loans").where({ id: loan.id }).update({ solde, statut });
-
-        res.json({ success: true, solde, statut });
+        res.json({ message: "Paiement modifié", soldeRecalcule, nouveauStatut });
 
     } catch (err) {
-        res.status(500).json({ error: "Erreur serveur" });
+        console.error("Erreur PUT /editPaiement/:id", err);
+        res.status(500).json({ error: "Erreur serveur." });
     }
 });
 
-// ----------------------------------------------------------
-// DELETE : supprimer un paiement
-// ----------------------------------------------------------
+
+/* ============================================================
+    DELETE — Supprimer un paiement
+    Route : /deletePaiement/:id
+============================================================ */
 router.delete("/deletePaiement/:id", async (req, res) => {
     try {
-        const id = req.params.id;
+        const { id } = req.params;
 
         const pay = await db("paiements").where({ id }).first();
-        if (!pay) return res.status(404).json({ error: "Paiement introuvable" });
+        if (!pay) return res.status(404).json({ error: "Paiement introuvable." });
 
         const loan = await db("loans").where({ id: pay.loan_id }).first();
+        if (!loan) return res.status(404).json({ error: "Prêt introuvable." });
 
+        // Supprimer paiement
         await db("paiements").where({ id }).del();
 
-        const paiementsUpdated = await db("paiements").where({ loan_id: loan.id });
+        // Recalcul solde
+        const nouveauSolde = (parseFloat(loan.solde) || 0) + (parseFloat(pay.montant) || 0);
+        const nouveauStatut = nouveauSolde <= 0 ? "REMBOURSÉ" : "ACTIF";
 
-        const totalDu = Number(loan.montant) + Number(loan.interets);
-        const totalApres = paiementsUpdated.reduce((s, p) => s + Number(p.montant), 0);
+        await db("loans")
+            .where({ id: loan.id })
+            .update({
+                solde: nouveauSolde,
+                statut: nouveauStatut
+            });
 
-        const dueDate = calculateDueDate(loan.date, loan.duree);
-
-        const totalAvant = paiementsUpdated
-            .filter(p => p.date <= dueDate.toISOString().split("T")[0])
-            .reduce((s, p) => s + Number(p.montant), 0);
-
-        const lastPayment = paiementsUpdated.length ? paiementsUpdated.reduce((a, b) => (new Date(a.date) > new Date(b.date) ? a : b)) : null;
-        const lastPaymentDate = lastPayment ? lastPayment.date : null;
-
-        let statut = determineStatus(totalDu, totalAvant, totalApres, dueDate, lastPaymentDate);
-        const solde = Number((totalDu - totalApres).toFixed(2));
-
-        statut = normalizeStatus(statut);
-
-        await db("loans").where({ id: loan.id }).update({ solde, statut });
-
-        res.json({ success: true, solde, statut });
+        res.json({ success: true, nouveauSolde });
 
     } catch (err) {
-        res.status(500).json({ error: "Erreur serveur" });
+        console.error("Erreur DELETE /deletePaiement/:id", err);
+        res.status(500).json({ error: "Erreur serveur." });
     }
 });
 

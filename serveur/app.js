@@ -20,6 +20,7 @@ const loansRoutes = require('./api/gestionLoans.js')
 const paiementsRoutes = require('./api/gestionPaiements');
 
 const UserRoutes = require('./api/gestionUsers.js')
+const dashboardRoutes = require('./api/dashboard.js')
 
 app.use(express.json())
 
@@ -37,6 +38,7 @@ app.use('/', loansRoutes);
 app.use('/', paiementsRoutes);
 
 app.use('/', UserRoutes)
+app.use('/', dashboardRoutes)
 
 
 
