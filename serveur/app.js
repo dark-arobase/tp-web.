@@ -1,7 +1,5 @@
 const express = require('express')
 const path = require('path')
-const cookieParser = require('cookie-parser');
-const session = require('express-session');
 
 const {db, createTable} = require('./db')
 
@@ -20,16 +18,10 @@ const loansRoutes = require('./api/gestionLoans.js')
 const paiementsRoutes = require('./api/gestionPaiements');
 
 const UserRoutes = require('./api/gestionUsers.js')
-const dashboardRoutes = require('./api/dashboard.js')
 
 app.use(express.json())
 
 app.use(express.static(path.join(__dirname, '../public')))
-
-app.use(cookieParser());
-
-
-
 
 app.use('/', clientsRoutes);
 
@@ -38,11 +30,6 @@ app.use('/', loansRoutes);
 app.use('/', paiementsRoutes);
 
 app.use('/', UserRoutes)
-app.use('/', dashboardRoutes)
-
-
-
-//app.use('/',
 
 createTable()
 .then(()=>{
