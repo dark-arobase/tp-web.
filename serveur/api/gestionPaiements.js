@@ -3,10 +3,6 @@ const router = express.Router();
 const crypto = require("crypto");
 const { db } = require("../db");
 
-/* ============================================================
-    GET — Paiements d'un prêt spécifique
-    Route : /paiements/:loan_id
-============================================================ */
 router.get("/paiements/:loan_id", async (req, res) => {
     try {
         const { loan_id } = req.params;
@@ -23,11 +19,6 @@ router.get("/paiements/:loan_id", async (req, res) => {
     }
 });
 
-
-/* ============================================================
-    GET — Tous les paiements (clients + prêts)
-    Route : /allPaiements
-============================================================ */
 router.get("/allPaiements", async (req, res) => {
     try {
         const paiements = await db("paiements as p")
@@ -49,11 +40,6 @@ router.get("/allPaiements", async (req, res) => {
     }
 });
 
-
-/* ============================================================
-    POST — Ajouter un paiement
-    Route : /addPaiement
-============================================================ */
 router.post("/addPaiement", async (req, res) => {
     try {
         const { loan_id, montant, date, mode, note } = req.body;
@@ -70,7 +56,6 @@ router.post("/addPaiement", async (req, res) => {
             note
         });
 
-        // Mettre à jour solde
         const loan = await db("loans").where({ id: loan_id }).first();
 
         const nouveauSolde = parseFloat(loan.solde) - parseFloat(montant);
@@ -88,25 +73,17 @@ router.post("/addPaiement", async (req, res) => {
     }
 });
 
-
-/* ============================================================
-    PUT — Modifier un paiement
-    Route : /editPaiement/:id
-============================================================ */
 router.put("/editPaiement/:id", async (req, res) => {
     try {
         const { id } = req.params;
         const { montant, date, mode, note, loan_id } = req.body;
 
-        // ancien paiement
         const oldPay = await db("paiements").where({ id }).first();
         if (!oldPay) return res.status(404).json({ error: "Paiement introuvable." });
 
-        // prêt lié
         const loan = await db("loans").where({ id: loan_id }).first();
         if (!loan) return res.status(404).json({ error: "Prêt introuvable." });
 
-        // Recalcul solde
         const soldeRecalcule =
             parseFloat(loan.solde) +
             parseFloat(oldPay.montant) -
@@ -114,12 +91,10 @@ router.put("/editPaiement/:id", async (req, res) => {
 
         const nouveauStatut = soldeRecalcule <= 0 ? "REMBOURSÉ" : "ACTIF";
 
-        // update paiement
         await db("paiements")
             .where({ id })
             .update({ montant, date, mode, note });
 
-        // update loan
         await db("loans")
             .where({ id: loan_id })
             .update({ solde: soldeRecalcule, statut: nouveauStatut });
@@ -132,11 +107,6 @@ router.put("/editPaiement/:id", async (req, res) => {
     }
 });
 
-
-/* ============================================================
-    DELETE — Supprimer un paiement
-    Route : /deletePaiement/:id
-============================================================ */
 router.delete("/deletePaiement/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -147,10 +117,8 @@ router.delete("/deletePaiement/:id", async (req, res) => {
         const loan = await db("loans").where({ id: pay.loan_id }).first();
         if (!loan) return res.status(404).json({ error: "Prêt introuvable." });
 
-        // Supprimer paiement
         await db("paiements").where({ id }).del();
 
-        // Recalcul solde
         const nouveauSolde = (parseFloat(loan.solde) || 0) + (parseFloat(pay.montant) || 0);
         const nouveauStatut = nouveauSolde <= 0 ? "REMBOURSÉ" : "ACTIF";
 

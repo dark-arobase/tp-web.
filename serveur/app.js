@@ -7,10 +7,9 @@ const {db, createTable} = require('./db')
 const app = express()
 
 app.get('/', (req, res)=>{
-  res.sendFile(path.join(__dirname, "../public", "login.html"));
+   res.sendFile(path.join(__dirname, "../public", "login.html"));
 })
 
-// import des routes
 const clientsRoutes = require('./api/gestionClients.js')
 
 const loansRoutes = require('./api/gestionLoans.js')

@@ -5,9 +5,6 @@ const router = express.Router();
 
 const { db } = require("../db");
 
-/* =========================
-   ROUTE : AJOUT CLIENT
-   ========================= */
 router.post('/addClient', async (req, res) => {
     try {
         const { nom, prenom, telephone, email, adresse } = req.body;
@@ -33,8 +30,7 @@ router.post('/addClient', async (req, res) => {
         if (!adresse ) {
             return res.status(400).json({ error: "Le champ 'adresse' est obligatoire." });
         }
-        /* revoir pour la validation plus tard */
-        const clients = {
+            const clients = {
             id: crypto.randomUUID(),
             nom : nom,
             prenom : prenom,
@@ -52,7 +48,6 @@ router.post('/addClient', async (req, res) => {
 
 router.get('/allClients', async (req, res)=>{
     try{
-        // Récupérer tous les clients avec le nombre de prêts
         const clients = await db('clients')
             .leftJoin('loans', 'clients.id', 'loans.client_id')
             .select('clients.*')
@@ -67,9 +62,6 @@ router.get('/allClients', async (req, res)=>{
     }
 });
 
-/* =========================
-     ROUTE : MODIFIER CLIENT
-     ========================= */
 router.put('/updateClient/:id', async (req, res) => {
     try {
         const {id} = req.params;
@@ -113,7 +105,6 @@ router.put('/updateClient/:id', async (req, res) => {
     if (updated == 0) {
      return res.status(404).json({error: "Client introuvable.."})
     }
-    // Return the updated client
     const updatedClient = await db('clients').where({id}).first();
     res.status(200).json(updatedClient);
 
@@ -126,36 +117,30 @@ router.put('/updateClient/:id', async (req, res) => {
       
 
 });
-/* =========================
-     ROUTE : SUPPRIMER CLIENT
-     ========================= */
 router.delete('/deleteClient/:id', async (req, res) => {
-     try{
+    try{
 
-      const {id} = req.params;
-     console.log('DELETE /deleteClient', { id });
+     const {id} = req.params;
+    console.log('DELETE /deleteClient', { id });
       
-      // Supprimer d'abord les paiements liés aux prêts du client
-      await db('paiements')
-          .whereIn('loan_id', db('loans').select('id').where('client_id', id))
-          .del();
+     await db('paiements')
+        .whereIn('loan_id', db('loans').select('id').where('client_id', id))
+        .del();
       
-      // Supprimer les prêts du client
-      await db('loans').where('client_id', id).del();
+     await db('loans').where('client_id', id).del();
       
-      // Supprimer le client
-      const deleted = await db("clients").where({id}).del();
+     const deleted = await db("clients").where({id}).del();
       
-      if (deleted ==0){
-      return res.status(404).json({error: "Client introuvable.."})
-     }
+     if (deleted ==0){
+     return res.status(404).json({error: "Client introuvable.."})
+    }
     res.status(200).json({message: "Client supprime...", id});
     
-     }catch(err){
-      console.error("Erreur /deleteClient", err);
-      res.status(500).json({error: "Erreur serveur.." })
+    }catch(err){
+     console.error("Erreur /deleteClient", err);
+     res.status(500).json({error: "Erreur serveur.." })
 
-     }
+    }
 
 });
 

@@ -1,7 +1,0 @@
-node_modules/
-*.sqlite3
-.env
-.DS_Store
-dist/
-npm-debug.log
-/.vscode/

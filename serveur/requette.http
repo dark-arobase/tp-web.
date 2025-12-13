@@ -1,6 +1,4 @@
 ####################################################################
-#                  TESTS - GESTION UTILISATEURS                    #
-####################################################################
 curl -X GET http://localhost:3000/alluser
 ####################################################################
 
@@ -76,15 +74,12 @@ curl -X PUT http://localhost:3000/editLoan/ba1cff79-56e1-4ff8-bc9c-d1d147469063 
 curl -X DELETE http://localhost:3000/deleteLoan/ba1cff79-56e1-4ff8-bc9c-d1d147469063
 
 ####################################################################
-#                   TESTS - GESTION PAIEMENTS                      #
-####################################################################
 
 
 curl -X GET http://localhost:3000/allLoans
 
 ####################################################################
 curl -X GET http://localhost:3000/allClients
-####################################################################
 ####################################################################
 curl -X GET http://localhost:3000/allPaiements
 
@@ -115,10 +110,6 @@ curl -X PUT http://localhost:3000/editPaiement/PAYMENT_ID_HERE \
 
 # 13. Supprimer un paiement
 curl -X DELETE http://localhost:3000/deletePaiement/PAYMENT_ID_HERE
-
-
-####################################################################
-#                 TESTS DE VALIDATION & ERREURS                    #
 ####################################################################
 
 # Client sans nom (erreur attendue 400)
@@ -163,8 +154,7 @@ curl -X POST http://localhost:3000/addPaiement \
            "note": "Test erreur"
          }'
 
-####################################################################
-#                 TEST SCÉNARIO COMPLET CLIENT-PRÊT-PAIEMENT       #
+
 ####################################################################
 
 # Étape 1: Créer un client

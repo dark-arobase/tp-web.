@@ -3,9 +3,6 @@ const router = express.Router();
 const crypto = require("crypto");
 const { db } = require("../db");
 
-// -------------------------------
-// Helpers
-// -------------------------------
 function calculateDueDate(startDate, dureeMois) {
     const d = new Date(startDate);
     d.setMonth(d.getMonth() + Number(dureeMois));
@@ -38,9 +35,6 @@ function normalizeStatus(s) {
     return s;
 }
 
-// =====================================================
-// 🔍 GET paiements d’un prêt
-// =====================================================
 router.get("/paiements/:loan_id", async (req, res) => {
     try {
         const paiements = await db("paiements")
@@ -53,9 +47,6 @@ router.get("/paiements/:loan_id", async (req, res) => {
     }
 });
 
-// =====================================================
-// 🔍 GET tous les prêts
-// =====================================================
 router.get("/allLoans", async (req, res) => {
     try {
         const loans = await db("loans as l")
@@ -75,9 +66,6 @@ router.get("/allLoans", async (req, res) => {
     }
 });
 
-// =====================================================
-// ➕ POST : Ajouter un prêt
-// =====================================================
 router.post('/addLoan', async (req, res) => {
     try {
         const { client_id, montant, taux, duree, date } = req.body;
@@ -85,7 +73,6 @@ router.post('/addLoan', async (req, res) => {
         if (!client_id || montant == null || taux == null || duree == null || !date)
             return res.status(400).json({ error: 'Champs manquants' });
 
-        // Vérifier client
         const client = await db('clients').where({ id: client_id }).first();
         if (!client) return res.status(404).json({ error: 'Client introuvable' });
 
@@ -93,7 +80,6 @@ router.post('/addLoan', async (req, res) => {
         const tauxNum = Number(taux);
         const dureeNum = Number(duree);
 
-        // calcul intérêts simples : montant * taux% * (duree / 12)
         const interets = round2(montantNum * (tauxNum / 100) * (dureeNum / 12));
         const solde = round2(montantNum + interets);
 
@@ -119,9 +105,6 @@ router.post('/addLoan', async (req, res) => {
     }
 });
 
-// =====================================================
-// ✏️ PUT : Modifier un prêt
-// =====================================================
 router.put('/editLoan/:id', async (req, res) => {
     try {
         const id = req.params.id;
@@ -151,9 +134,6 @@ router.put('/editLoan/:id', async (req, res) => {
     }
 });
 
-// =====================================================
-// ❌ DELETE : Supprimer un prêt
-// =====================================================
 router.delete('/deleteLoan/:id', async (req, res) => {
     try {
         const id = req.params.id;
@@ -168,9 +148,6 @@ router.delete('/deleteLoan/:id', async (req, res) => {
     }
 });
 
-// =====================================================
-// 🔍 GET tous les paiements
-// =====================================================
 router.get("/allPaiements", async (req, res) => {
     try {
         const paiements = await db("paiements").orderBy("date", "desc");
@@ -180,9 +157,6 @@ router.get("/allPaiements", async (req, res) => {
     }
 });
 
-// =====================================================
-// ➕ POST : Ajouter un paiement
-// =====================================================
 router.post("/addPaiement", async (req, res) => {
     try {
         const { loan_id, montant, date, mode, note } = req.body;
@@ -239,9 +213,6 @@ router.post("/addPaiement", async (req, res) => {
     }
 });
 
-// =====================================================
-// ✏️ PUT : Modifier un paiement
-// =====================================================
 router.put("/editPaiement/:id", async (req, res) => {
     try {
         const id = req.params.id;
@@ -297,9 +268,6 @@ router.put("/editPaiement/:id", async (req, res) => {
     }
 });
 
-// =====================================================
-// ❌ DELETE : Supprimer un paiement
-// =====================================================
 router.delete("/deletePaiement/:id", async (req, res) => {
     try {
         const id = req.params.id;
